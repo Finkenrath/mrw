@@ -3,7 +3,7 @@
 *
 * File check1.c
 *
-* Copyright (C) 2013 Bjoern Leder, Jacob Finkenrath
+* Copyright (C) 2013, 2015 Bjoern Leder, Jacob Finkenrath
 *
 * This software is distributed under the terms of the GNU General Public
 * License (GPL)
@@ -36,17 +36,78 @@
 #include "mrw.h"
 
 
+#define N0 (NPROC0*L0)
+#define N1 (NPROC1*L1)
+#define N2 (NPROC2*L2)
+#define N3 (NPROC3*L3)
+
+
+static int my_rank;
+static FILE *flog=NULL,*fin=NULL;
+
+static void read_bc_parms(void)
+{
+   int bc;
+   double cG,cG_prime,cF,cF_prime;
+   double phi[2],phi_prime[2];
+
+   if (my_rank==0)
+   {
+      find_section("Boundary conditions");
+      read_line("type","%d",&bc);
+
+      phi[0]=0.0;
+      phi[1]=0.0;
+      phi_prime[0]=0.0;
+      phi_prime[1]=0.0;
+      cG=1.0;
+      cG_prime=1.0;
+      cF=1.0;
+      cF_prime=1.0;
+
+      if (bc==1)
+         read_dprms("phi",2,phi);
+
+      if ((bc==1)||(bc==2))
+         read_dprms("phi'",2,phi_prime);
+
+      if (bc!=3)
+      {
+         read_line("cG","%lf",&cG);
+         read_line("cF","%lf",&cF);
+      }
+
+      if (bc==2)
+      {
+         read_line("cG'","%lf",&cG_prime);
+         read_line("cF'","%lf",&cF_prime);
+      }
+   }
+
+   MPI_Bcast(&bc,1,MPI_INT,0,MPI_COMM_WORLD);
+   MPI_Bcast(phi,2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(phi_prime,2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cG,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cG_prime,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cF,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cF_prime,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+   set_bc_parms(bc,cG,cG_prime,cF,cF_prime,phi,phi_prime);
+
+   print_bc_parms();
+}
+
 int main(int argc,char *argv[])
 {
-   int my_rank,irw,isp,status[6],mnkv;
+   int irw,isp,status[6],mnkv;
    int bs[4],Ns,nmx,nkv,nmr,ncy,ninv;
    double kappa,m0,dm,mu0,mu,res,mxres,mnres;
    double sqne0,sqne1,sqnp0,sqnp1,sqnr,rmx;
+	double w0,w1,npl;
    complex_dble lnr0,lnr1,dr,drmx;
    spinor_dble **wsd;
    solver_parms_t sp;
    mrw_masses_t ms;
-   FILE *flog=NULL,*fin=NULL;
    
    MPI_Init(&argc,&argv);
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
@@ -83,6 +144,8 @@ int main(int argc,char *argv[])
       if (sp.nkv>mnkv)
          mnkv=sp.nkv;
    }
+   
+   read_bc_parms();
    
    if (my_rank==0)
    {
@@ -135,8 +198,8 @@ int main(int argc,char *argv[])
    MPI_Bcast(&res,1,MPI_DOUBLE,0,MPI_COMM_WORLD);      
    set_dfl_pro_parms(nkv,nmx,res);
 
-   set_lat_parms(6.0,1.0,0.0,0.0,0.0,1.234,1.0,1.34);
-
+   set_lat_parms(6.0,1.0,0,NULL,1.234);
+	
    print_solver_parms(status,status+1);
    print_sap_parms(0);
    print_dfl_parms(0);
@@ -157,7 +220,8 @@ int main(int argc,char *argv[])
    drmx.re=0.0;
    drmx.im=0.0;
    rmx=0.0;
-   
+      
+	npl=(double)(6*(N0-1))*(double)(N1*N2*N3);
    for (irw=0;irw<2;irw++)
    {
       dm=1.0e-2;
@@ -203,6 +267,16 @@ int main(int argc,char *argv[])
             wsd=reserve_wsd(3);
             start_ranlux(0,8910+isp);
             random_sd(VOLUME,wsd[0],1.0);
+				
+			  w0=plaq_wsum_dble(0)/npl;
+				
+			  MPI_Reduce(&w0,&w1,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+			  MPI_Bcast(&w1,1,MPI_DOUBLE,0,MPI_COMM_WORLD); 
+			  ranlxd(&w0,1);
+			  
+			  printf("Plaq %.16f and rand %.8f\n",w1,w0);
+				
+				
             bnd_sd2zero(ALL_PTS,wsd[0]);
             sqne1=norm_square_dble(VOLUME,1,wsd[0]);
             set_sw_parms(ms.m1);

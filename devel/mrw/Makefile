@@ -21,7 +21,7 @@ all: rmxeq mkdep mkxeq
  
 MAIN = check1 check2 check3 check4 check5 check6 check7 check8 check9 check10 check11
 
-ARCHIVE = archive marchive
+ARCHIVE = archive sarchive
 
 BLOCK = block blk_grid map_u2blk map_sw2blk map_s2blk
 
@@ -30,7 +30,7 @@ DFL = dfl_geometry dfl_subspace ltl_gcr dfl_sap_gcr dfl_modes
 DIRAC = Dw_dble Dw Dw_bnd
 
 FLAGS = flags action_parms dfl_parms force_parms hmc_parms lat_parms \
-        mdint_parms rat_parms sap_parms sf_parms solver_parms
+        mdint_parms rat_parms rw_parms sap_parms solver_parms
 
 FORCES = tmcg
          
