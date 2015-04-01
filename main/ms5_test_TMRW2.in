@@ -1,16 +1,16 @@
 
 [Run name]
-name         Snoopy137
+name         DreiKaesehoch
 
 [Directories]
-log_dir      ../data/ms5/log
-dat_dir      ../data/ms5/dat
-loc_dir      /home/leder/projects/nf2+1/mrw/ym1/cnfg 
-cnfg_dir     /home/leder/projects/nf2+1/mrw/ym1/cnfg  
+log_dir      ../data/ms5/t6_2/log
+dat_dir      ../data/ms5/t6_2/dat
+loc_dir      ../../openQCD-1.2-mrw-rc1/data/ym1/cnfg
+cnfg_dir     ../../openQCD-1.2-mrw-rc1/data/ym1/cnfg
 
 [Configurations]
-first        10 
-last         15 
+first        1
+last         11
 step         1 
 nrw          3
 
@@ -19,11 +19,19 @@ level        0
 seed         73099  
 
 [Lattice parameters]
-kappa_u      0.13519
-kappa_s      0.13
-kappa_c      0.0
-csw          1.234  
-cF           0.95   
+beta         6.0
+c0           1.6667
+kappa        0.13519 0.13 0.0
+csw          1.234
+
+[Boundary conditions]
+type         0
+phi          0.12 -0.56
+phi'         0.92 0.76
+cG           1.10
+cG'          1.10
+cF           0.95
+cF'          0.95 
                     
 [Reweighting factor 0]
 mrwfact      TMRW1   
@@ -32,7 +40,7 @@ mu0          0.01
 mu           0.0   
 isp          1      
 nsrc         6   
-nm           8   
+nm           16   
 pwr          0
 
 [Reweighting factor 1]
@@ -42,7 +50,7 @@ mu0          0.01
 mu           0.0141421356237310  
 isp          1      
 nsrc         6     
-nm           8   
+nm           16   
 pwr          0
 
 [Reweighting factor 2]

@@ -19,12 +19,20 @@ level        0
 seed         73099  
 
 [Lattice parameters]
-kappa_u      0.13519
-kappa_s      0.13
-kappa_c      0.0
-csw          1.234  
-cF           0.95   
-                    
+beta         6.0
+c0           1.6667
+kappa        0.13519 0.13 0.0
+csw          1.234
+
+[Boundary conditions]
+type         0
+phi          0.12 -0.56
+phi'         0.92 0.76
+cG           1.10
+cG'          1.10
+cF           0.95
+cF'          0.95
+                  
 [Reweighting factor 0]
 mrwfact      MRW_ISO   
 im0          0       

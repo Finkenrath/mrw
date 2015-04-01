@@ -29,7 +29,7 @@ DFL = dfl_geometry dfl_subspace ltl_gcr dfl_sap_gcr dfl_modes
 DIRAC = Dw_dble Dw Dw_bnd
 
 FLAGS = flags action_parms dfl_parms force_parms hmc_parms lat_parms \
-        mdint_parms rat_parms rw_parms sap_parms sf_parms solver_parms
+        mdint_parms rat_parms rw_parms sap_parms solver_parms
 
 FORCES = force0 force1 force2 force3 force4 force5 \
          frcfcts genfrc tmcg tmcgm xtensor
@@ -77,7 +77,7 @@ MODULES = $(ARCHIVE) $(BLOCK) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
 
 # path to openQCD
 
-OPENQCD = ../../../openQCD-1.2
+OPENQCD = ../../../openQCD-1.4
 
 # Logging option (-mpilog or -mpitrace or -mpianim)
 

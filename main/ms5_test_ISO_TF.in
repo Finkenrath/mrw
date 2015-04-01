@@ -1,16 +1,16 @@
 
 [Run name]
-name         Snoopy137
+name         DreiKaesehochSFN
 
 [Directories]
-log_dir      ../data/ms5/log
-dat_dir      ../data/ms5/dat
-loc_dir      /home/leder/projects/nf2+1/mrw/ym1/cnfg 
-cnfg_dir     /home/leder/projects/nf2+1/mrw/ym1/cnfg  
+log_dir      ../data/ms5/t1_5/log
+dat_dir      ../data/ms5/t1_5/dat
+loc_dir      ../data/ym1/cnfg
+cnfg_dir     ../data/ym1/cnfg
 
 [Configurations]
-first        10 
-last         15 
+first        1
+last         3
 step         1 
 nrw          2
 
@@ -19,20 +19,28 @@ level        0
 seed         73099  
 
 [Lattice parameters]
-kappa_u      0.13519
-kappa_s      0.13
-kappa_c      0.0
-csw          1.234  
-cF           0.95   
+beta         6.0
+c0           1.6667
+kappa        0.13519 0.13 0.0
+csw          1.234
+
+[Boundary conditions]
+type         1
+phi          0.12 -0.56
+phi'         0.92 0.76
+cG           1.10
+cG'          1.10
+cF           0.95
+cF'          0.95 
 
 [Reweighting factor 0]
 mrwfact      MRW_ISO   
 kappa0       0.13519       
-mu0          0.5
+mu0          0.0
 kappa        0.13515  
 isp          1 1     
 nsrc         6      
-nm           6   
+nm           12   
 pwr          1
 tmeo         0
 
@@ -40,13 +48,13 @@ tmeo         0
 mrwfact      MRW_TF  
 kappa0       0.13519       
 kappa        0.13519 
-mu0          0.5
-mu           0.5
+mu0          0.0
+mu           0.0
 gamma        1.0
 kappa2       0.13515 
 isp          0 1     
 nsrc         6     
-nm           6   
+nm           12   
 pwr          1
 tmeo         0
 

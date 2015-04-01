@@ -3,7 +3,7 @@
 *
 * File ms5.c
 *
-* Copyright (C) 2012, 2013 Martin Luescher, 2013 Bjoern Leder, Jacob Finkenrath
+* Copyright (C) 2012, 2013 Martin Luescher, 2013 - 2015 Bjoern Leder, Jacob Finkenrath
 *
 * This software is distributed under the terms of the GNU General Public
 * License (GPL)
@@ -426,25 +426,39 @@ static void setup_files(void)
 
 static void read_lat_parms(void)
 {
-   double kappa_u,kappa_s,kappa_c,csw,cF;
+   int nk;
+   double beta,c0,csw,*kappa;
 
    if (my_rank==0)
    {
       find_section("Lattice parameters");
-      read_line("kappa_u","%lf",&kappa_u);
-      read_line("kappa_s","%lf",&kappa_s);
-      read_line("kappa_c","%lf",&kappa_c);      
+      read_line("beta","%lf",&beta);
+      read_line("c0","%lf",&c0);
+      nk=count_tokens("kappa");
       read_line("csw","%lf",&csw);
-      read_line("cF","%lf",&cF);   
    }
 
-   MPI_Bcast(&kappa_u,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   MPI_Bcast(&kappa_s,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   MPI_Bcast(&kappa_c,1,MPI_DOUBLE,0,MPI_COMM_WORLD);   
+   MPI_Bcast(&beta,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&c0,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&nk,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&csw,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   MPI_Bcast(&cF,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-   
-   set_lat_parms(0.0,1.0,kappa_u,kappa_s,kappa_c,csw,1.0,cF);
+
+   if (nk>0)
+   {
+      kappa=malloc(nk*sizeof(*kappa));
+      error(kappa==NULL,1,"read_lat_parms [qcd1.c]",
+            "Unable to allocate parameter array");
+      if (my_rank==0)
+         read_dprms("kappa",nk,kappa);
+      MPI_Bcast(kappa,nk,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   }
+   else
+      kappa=NULL;
+
+   set_lat_parms(beta,c0,nk,kappa,csw);
+
+   if (nk>0)
+      free(kappa);
 
    if (append)
       check_lat_parms(fdat);
@@ -452,6 +466,57 @@ static void read_lat_parms(void)
       write_lat_parms(fdat);
 }
 
+static void read_bc_parms(void)
+{
+   int bc;
+   double cG,cG_prime,cF,cF_prime;
+   double phi[2],phi_prime[2];
+
+   if (my_rank==0)
+   {
+      find_section("Boundary conditions");
+      read_line("type","%d",&bc);
+
+      phi[0]=0.0;
+      phi[1]=0.0;
+      phi_prime[0]=0.0;
+      phi_prime[1]=0.0;
+      cG=1.0;
+      cG_prime=1.0;
+      cF=1.0;
+      cF_prime=1.0;
+
+      if (bc==1)
+         read_dprms("phi",2,phi);
+
+      if ((bc==1)||(bc==2))
+         read_dprms("phi'",2,phi_prime);
+
+      if (bc!=3)
+      {
+         read_line("cG","%lf",&cG);
+         read_line("cF","%lf",&cF);
+      }
+
+      if (bc==2)
+      {
+         read_line("cG'","%lf",&cG_prime);
+         read_line("cF'","%lf",&cF_prime);
+      }
+   }
+
+   MPI_Bcast(&bc,1,MPI_INT,0,MPI_COMM_WORLD);
+   MPI_Bcast(phi,2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(phi_prime,2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cG,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cG_prime,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cF,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cF_prime,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+   set_bc_parms(bc,cG,cG_prime,cF,cF_prime,phi,phi_prime);
+
+   print_bc_parms();
+}
 
 static void read_mrw_factors(void)
 {
@@ -653,7 +718,8 @@ static void read_infile(int argc,char *argv[])
    }
 
    read_lat_parms();
-   read_mrw_factors();
+   read_bc_parms();
+	read_mrw_factors();
    read_solvers();
 
    if (my_rank==0)
@@ -824,9 +890,8 @@ static void check_files(void)
 
 static void print_info(void)
 {
-   int isap,idfl,n;
+   int isap,idfl;
    long ip;   
-   lat_parms_t lat;
    
    if (my_rank==0)
    {
@@ -902,18 +967,8 @@ static void print_info(void)
          printf("Random number generator:\n");
          printf("level = %d, seed = %d\n\n",level,seed);
          
-         lat=lat_parms();
-         printf("Lattice parameters:\n");
-         n=fdigits(lat.kappa_u);
-         printf("kappa_u = %.*f\n",IMAX(n,6),lat.kappa_u);      
-         n=fdigits(lat.kappa_s);
-         printf("kappa_s = %.*f\n",IMAX(n,6),lat.kappa_s);
-         n=fdigits(lat.kappa_c);
-         printf("kappa_c = %.*f\n",IMAX(n,6),lat.kappa_c);               
-         n=fdigits(lat.csw);
-         printf("csw = %.*f\n",IMAX(n,1),lat.csw);      
-         n=fdigits(lat.cF);
-         printf("cF = %.*f\n\n",IMAX(n,1),lat.cF);
+         print_lat_parms();
+         print_bc_parms();
 
          print_mrw_parms();
          print_rat_parms();
@@ -994,8 +1049,7 @@ static void reweight_wsize(int *nws,int *nwsd,int *nwv,int *nwvd)
 
          nsd=2;
          solver_wsize(isp,nsd,0,nws,nwsd,nwv,nwvd);
-      }
-   }
+      }   }
 }
 
 
