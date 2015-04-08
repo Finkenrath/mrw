@@ -1106,7 +1106,8 @@ static void set_data(int nc)
 
    nrw=file_head.nrw;
    data.nc=nc;   
-
+   chs_ubnd(-1);
+	
    for (irw=0;irw<nrw;irw++)
    {
       lnr=data.dbl[irw];
