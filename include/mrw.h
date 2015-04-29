@@ -24,8 +24,8 @@ typedef enum
 typedef struct
 {
    mrwfact_t mrwfact;
-   int nsrc,isp[2],nm,pwr,tmeo;
-   double kappa0,kappa,m0,m,mu0,mu,gamma,kappa2;
+   int nsrc,isp[2],nm,tmeo;
+   double kappa0,kappa,m0,m,mu0,mu,gamma,kappa2,pwr;
 } mrw_parms_t;
 
 typedef struct
@@ -52,8 +52,8 @@ extern double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,double *sqnp,
 /* MRW_PARMS_C */
 extern void init_mrw(void);
 extern mrw_parms_t set_mrw_parms(int irw,mrwfact_t mrwfact,double kappa0,double kappa,
-                                 double mu0,double mu,double gamma,double kappa2,
-                                 int isp1,int isp2,int nm,int pwr,int nsrc,int tmeo);
+                                 double mu0,double mu,double gamma,double kappa2,double pwr,
+                                 int isp1,int isp2,int nm,int nsrc,int tmeo);
 extern mrw_parms_t mrw_parms(int irw);
 extern void read_mrw_parms(int irw);
 extern void print_mrw_parms(void);

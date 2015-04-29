@@ -41,7 +41,7 @@ mu           0.001
 isp          0      
 nsrc         6   
 nm           8   
-pwr          1
+pwr          1.0
 
 [Reweighting factor 1]
 mrwfact      TMRW1_EO       
@@ -51,7 +51,7 @@ mu           0.0
 isp          0      
 nsrc         6     
 nm           8   
-pwr          1
+pwr          1.0
 
 [Reweighting factor 2]
 mrwfact      TMRW3_EO   
@@ -62,7 +62,7 @@ kappa        0.13
 isp          1 1      
 nsrc         6     
 nm           8   
-pwr          1
+pwr          1.0
 
 [Reweighting factor 3]
 mrwfact      TMRW3_EO   
@@ -73,7 +73,7 @@ kappa        0.13
 isp          1 1      
 nsrc         6     
 nm           8   
-pwr          1
+pwr          1.0
 
 [Reweighting factor 4]
 mrwfact      TMRW4_EO   
@@ -84,7 +84,7 @@ kappa        0.13
 isp          1 1      
 nsrc         6     
 nm           8   
-pwr          1
+pwr          1.0
 
 [Solver 0]
 solver       DFL_SAP_GCR 

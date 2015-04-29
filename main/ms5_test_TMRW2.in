@@ -41,7 +41,7 @@ mu           0.0
 isp          1      
 nsrc         6   
 nm           16   
-pwr          0
+pwr          0.0
 
 [Reweighting factor 1]
 mrwfact      TMRW1       
@@ -51,7 +51,7 @@ mu           0.0141421356237310
 isp          1      
 nsrc         6     
 nm           16   
-pwr          0
+pwr          0.0
 
 [Reweighting factor 2]
 mrwfact      TMRW2       
@@ -62,7 +62,7 @@ kappa        0.1
 isp          1 1     
 nsrc         6     
 nm           4   
-pwr          0
+pwr          0.0
 
 
 [Solver 0]

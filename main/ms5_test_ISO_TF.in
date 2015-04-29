@@ -3,10 +3,10 @@
 name         DreiKaesehochSFN
 
 [Directories]
-log_dir      ../data/ms5/t1_5/log
-dat_dir      ../data/ms5/t1_5/dat
-loc_dir      ../data/ym1/cnfg
-cnfg_dir     ../data/ym1/cnfg
+log_dir      ../../test_data/ms5/t1_4/log
+dat_dir      ../../test_data/ms5/t1_4/dat
+loc_dir      ../../../mrw-1.2/data/ym1/cnfg
+cnfg_dir     ../../../mrw-1.2/data/ym1/cnfg
 
 [Configurations]
 first        1
@@ -41,7 +41,7 @@ kappa        0.13515
 isp          1 1     
 nsrc         6      
 nm           12   
-pwr          1
+pwr          0.25
 tmeo         0
 
 [Reweighting factor 1]
@@ -55,7 +55,7 @@ kappa2       0.13515
 isp          0 1     
 nsrc         6     
 nm           12   
-pwr          1
+pwr          0.25
 tmeo         0
 
 [Solver 0]

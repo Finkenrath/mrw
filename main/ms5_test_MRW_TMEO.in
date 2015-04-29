@@ -44,7 +44,7 @@ gamma        1.0
 isp          0 1     
 nsrc         6      
 nm           24   
-pwr          1
+pwr          1.0
 tmeo         1
 
 [Reweighting factor 1]
@@ -56,7 +56,7 @@ mu           0.05
 isp          1 1      
 nsrc         6     
 nm           24
-pwr          1   
+pwr          1.0
 
 [Solver 0]
 solver       DFL_SAP_GCR 

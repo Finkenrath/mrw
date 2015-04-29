@@ -190,9 +190,9 @@ static double check_mrw_inter(int irw,int *ie)
          d1+=fabs(ms0.mu2-ms.mu2);
       }
       
-      if (rw.pwr==0)
+      if (rw.pwr==0.0)
          (*ie)|=(ms0.d1!=ms.d1);
-      if (rw.pwr>0)
+      if (rw.pwr>0.0)
          (*ie)|=(fabs(ms0.d1)>=fabs(ms.d1));
       
       delta1+=ms.d1;
@@ -255,8 +255,8 @@ static double check_mrw_inter(int irw,int *ie)
 
 int main(int argc,char *argv[])
 {
-   int my_rank,irw,nm,ie,iea,p,nrw,nmx;
-   double kappa0,kappa,kappa2,mu,mu0,gamma;
+   int my_rank,irw,nm,ie,iea,p1,nrw,nmx;
+   double kappa0,kappa,kappa2,mu,mu0,gamma,p;
    double d,dmx;
    FILE *flog=NULL,*fin=NULL;
    mrw_parms_t rw;
@@ -349,15 +349,17 @@ int main(int argc,char *argv[])
          printf("%s, p: ",mrwfacts[irw]);
       }   
       
-      for (p=0;p<=4;p++)
+      for (p1=0;p1<=32;p1++)
       {
+			p=((double) p1)/8.0;
+			
          if (my_rank==0)
          {            
-            printf("%d ",p);
+            printf("%.3f ",p);
          }   
 
          init_mrw();
-         set_mrw_parms(irw,mrwfact[irw],kappa0,kappa,mu0,mu,gamma,kappa2,0,0,nm,p,1,0);
+         set_mrw_parms(irw,mrwfact[irw],kappa0,kappa,mu0,mu,gamma,kappa2,p,0,0,nm,1,0);
          
          d=check_mrw_inter(irw,&ie);
          

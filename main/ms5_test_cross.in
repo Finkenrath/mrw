@@ -41,7 +41,7 @@ kappa        0.15463
 isp          1 1
 nsrc         1
 nm           1   
-pwr          1
+pwr          1.0
 tmeo         0
 
 [Solver 0]
