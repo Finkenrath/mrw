@@ -1,31 +1,31 @@
 
 [Run name]
-name         DreiKaesehochSFN
+name         8x8x8x8b5.80k0.15462c0.00000id11
 
 [Directories]
-log_dir      ../../test_data/ms5/t1_4/log
-dat_dir      ../../test_data/ms5/t1_4/dat
-loc_dir      ../../../mrw-1.2/data/ym1/cnfg
-cnfg_dir     ../../../mrw-1.2/data/ym1/cnfg
+log_dir      ../data/ms5/cross/log
+dat_dir      ../data/ms5/cross/dat
+loc_dir      ../../../../PSE/DD-PSD-1.0.5/data/testcnfg
+cnfg_dir     ../../../../PSE/DD-PSD-1.0.5/data/testcnfg
 
 [Configurations]
-first        1
-last         3
+first        31
+last         31
 step         1 
-nrw          2
+nrw          1
 
 [Random number generator]
 level        0      
 seed         73099  
 
 [Lattice parameters]
-beta         6.0
-c0           1.6667
-kappa        0.13519 0.13 0.0
-csw          1.234
+beta         5.8
+c0           1.0
+kappa        0.15462 0.15462
+csw          0.0
 
 [Boundary conditions]
-type         1
+type         3
 phi          0.12 -0.56
 phi'         0.92 0.76
 cG           1.10
@@ -35,27 +35,13 @@ cF'          0.95
 
 [Reweighting factor 0]
 mrwfact      MRW_ISO   
-kappa0       0.13519       
+kappa0       0.15462
 mu0          0.0
-kappa        0.13515  
-isp          1 1     
-nsrc         6      
-nm           12   
-pwr          0.25
-tmeo         0
-
-[Reweighting factor 1]
-mrwfact      MRW_TF  
-kappa0       0.13519       
-kappa        0.13519 
-mu0          0.0
-mu           0.0
-gamma        1.0
-kappa2       0.13515 
-isp          0 1     
-nsrc         6     
-nm           12   
-pwr          0.25
+kappa        0.15463
+isp          1 1
+nsrc         1
+nm           1   
+pwr          1.0
 tmeo         0
 
 [Solver 0]
@@ -74,7 +60,7 @@ isolv        1
 nmr          4           
 ncy          5           
 nmx          48          
-res          1.0e-11     
+res          1.0e-14
 
 [SAP]
 bs           4 4 4 4

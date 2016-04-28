@@ -9,7 +9,7 @@ kappa        0.13515
 isp          1 1     
 nsrc         6      
 nm           6   
-pwr          1
+pwr          1.0
 tmeo         0
 
 [Reweighting factor 1]
@@ -23,7 +23,7 @@ kappa2       0.13515
 isp          0 1     
 nsrc         6     
 nm           6   
-pwr          1
+pwr          1.0
 tmeo         0
 
 [Reweighting factor 2]
@@ -34,7 +34,7 @@ mu           0.001
 isp          0      
 nsrc         6   
 nm           4   
-pwr          0
+pwr          0.0
 
 [Reweighting factor 3]
 mrwfact      TMRW1       
@@ -44,7 +44,7 @@ mu           0.0
 isp          0      
 nsrc         6     
 nm           4   
-pwr          0
+pwr          0.0
 
 
 [Reweighting factor 4]
@@ -56,7 +56,7 @@ kappa        0.135
 isp          0 0      
 nsrc         6     
 nm           4   
-pwr          0
+pwr          0.0
 
 [Reweighting factor 5]
 mrwfact      TMRW3   
@@ -67,7 +67,7 @@ kappa        0.13
 isp          1 1      
 nsrc         6     
 nm           4   
-pwr          0
+pwr          0.0
 
 [Reweighting factor 6]
 mrwfact      TMRW3   
@@ -78,7 +78,7 @@ kappa        0.13
 isp          1 1      
 nsrc         6     
 nm           4   
-pwr          0
+pwr          0.0
 
 [Reweighting factor 7]
 mrwfact      TMRW4   
@@ -89,7 +89,7 @@ kappa        0.13
 isp          1 1      
 nsrc         6     
 nm           4   
-pwr          0
+pwr          0.0
 
 [Reweighting factor 8]
 mrwfact      TMRW2_EO
@@ -100,5 +100,5 @@ kappa        0.136970
 isp          0 0
 nsrc         6
 nm           4
-pwr          4
+pwr          4.0
 

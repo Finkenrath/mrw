@@ -3,7 +3,7 @@
 *
 * File check3.c
 *
-* Copyright (C) 2013 Bjoern Leder, Jacob Finkenrath
+* Copyright (C) 2013, 2015, Bjoern Leder, Jacob Finkenrath
 *
 * This software is distributed under the terms of the GNU General Public
 * License (GPL)
@@ -35,10 +35,64 @@
 #include "global.h"
 #include "mrw.h"
 
+static int my_rank;
+static FILE *flog=NULL,*fin=NULL;
+
+static void read_bc_parms(void)
+{
+   int bc;
+   double cG,cG_prime,cF,cF_prime;
+   double phi[2],phi_prime[2];
+
+   if (my_rank==0)
+   {
+      find_section("Boundary conditions");
+      read_line("type","%d",&bc);
+
+      phi[0]=0.0;
+      phi[1]=0.0;
+      phi_prime[0]=0.0;
+      phi_prime[1]=0.0;
+      cG=1.0;
+      cG_prime=1.0;
+      cF=1.0;
+      cF_prime=1.0;
+
+      if (bc==1)
+         read_dprms("phi",2,phi);
+
+      if ((bc==1)||(bc==2))
+         read_dprms("phi'",2,phi_prime);
+
+      if (bc!=3)
+      {
+         read_line("cG","%lf",&cG);
+         read_line("cF","%lf",&cF);
+      }
+
+      if (bc==2)
+      {
+         read_line("cG'","%lf",&cG_prime);
+         read_line("cF'","%lf",&cF_prime);
+      }
+   }
+
+   MPI_Bcast(&bc,1,MPI_INT,0,MPI_COMM_WORLD);
+   MPI_Bcast(phi,2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(phi_prime,2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cG,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cG_prime,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cF,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   MPI_Bcast(&cF_prime,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+   set_bc_parms(bc,cG,cG_prime,cF,cF_prime,phi,phi_prime);
+
+   print_bc_parms();
+}
 
 int main(int argc,char *argv[])
 {
-   int my_rank,irw,isp,ispp[2],status[6],mnkv;
+   int irw,isp,ispp[2],status[6],mnkv;
    int bs[4],Ns,nmx,nkv,nmr,ncy,ninv;
    double kappa,m0,dm,mu0,mu,res,mres;
    double sqnp0[2],sqnp1[2],sqne0,sqne1;
@@ -46,7 +100,6 @@ int main(int argc,char *argv[])
    complex_dble lnw1[2],dr,drmx,z0,z1;
    solver_parms_t sp;
    mrw_masses_t ms;
-   FILE *flog=NULL,*fin=NULL;
    
    MPI_Init(&argc,&argv);
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
@@ -78,6 +131,8 @@ int main(int argc,char *argv[])
       if (sp.nkv>mnkv)
          mnkv=sp.nkv;
    }
+      
+   read_bc_parms();
    
    if (my_rank==0)
    {
@@ -130,7 +185,7 @@ int main(int argc,char *argv[])
    MPI_Bcast(&res,1,MPI_DOUBLE,0,MPI_COMM_WORLD);      
    set_dfl_pro_parms(nkv,nmx,res);
 
-   set_lat_parms(6.0,1.0,0.0,0.0,0.0,1.234,1.0,1.34);
+   set_lat_parms(6.0,1.0,0,NULL,1.234);
 
    print_solver_parms(status,status+1);
    print_sap_parms(0);
