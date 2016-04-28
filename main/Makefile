@@ -18,7 +18,7 @@ all: rmxeq mkdep mkxeq
 
 # main programs and modules to be compiled
 
-MAIN = ym1 qcd1 qcd2 ms1 ms2 ms3 ms4 ms5
+MAIN = ms5
 
 ARCHIVE = archive sarchive
 
@@ -75,6 +75,12 @@ MODULES = $(ARCHIVE) $(BLOCK) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
           $(RATFCTS) $(SAP) $(SFLDS) $(SU3FCTS) $(SW_TERM) $(TCHARGE) \
           $(UFLDS) $(UPDATE) $(UTILS) $(VFLDS) $(WFLOW) $(MRW)
 
+<<<<<<< HEAD
+=======
+# path to openQCD
+
+OPENQCD = ../../../openQCD-1.2
+>>>>>>> master
 
 # Logging option (-mpilog or -mpitrace or -mpianim)
 
@@ -83,6 +89,7 @@ LOGOPTION =
 
 # search path for modules
 
+<<<<<<< HEAD
 MDIR = ../modules
 
 VPATH = .:$(MDIR)/flags:$(MDIR)/lattice:$(MDIR)/archive:$(MDIR)/linalg:\
@@ -91,11 +98,27 @@ VPATH = .:$(MDIR)/flags:$(MDIR)/lattice:$(MDIR)/archive:$(MDIR)/linalg:\
 	  $(MDIR)/sw_term:$(MDIR)/tcharge:$(MDIR)/block:$(MDIR)/sap:\
 	  $(MDIR)/linsolv:$(MDIR)/dfl:$(MDIR)/vflds:$(MDIR)/little:\
           $(MDIR)/update:$(MDIR)/wflow:$(MDIR)/ratfcts:$(MDIR)/mrw
+=======
+MDIRH = $(OPENQCD)/modules
+
+MDIR = ../modules
+
+VPATH = .:$(MDIRH)/flags:$(MDIRH)/lattice:$(MDIRH)/archive:$(MDIRH)/linalg:\
+          $(MDIRH)/random:$(MDIRH)/uflds:$(MDIRH)/mdflds:$(MDIRH)/su3fcts:\
+          $(MDIRH)/utils:$(MDIRH)/forces:$(MDIRH)/sflds:$(MDIRH)/dirac:\
+	  $(MDIRH)/sw_term:$(MDIRH)/tcharge:$(MDIRH)/block:$(MDIRH)/sap:\
+	  $(MDIRH)/linsolv:$(MDIRH)/dfl:$(MDIRH)/vflds:$(MDIRH)/little:\
+          $(MDIRH)/update:$(MDIRH)/wflow:$(MDIRH)/ratfcts:$(MDIR)/mrw
+>>>>>>> master
 
 
 # additional include directories
 
+<<<<<<< HEAD
 INCPATH = $(MPIR_HOME)/include ../include
+=======
+INCPATH = $(MPIR_HOME)/include $(OPENQCD)/include/ ../include
+>>>>>>> master
 
 
 # additional libraries

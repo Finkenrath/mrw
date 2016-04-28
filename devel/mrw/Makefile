@@ -71,6 +71,12 @@ MODULES = $(ARCHIVE) $(BLOCK) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
           $(SAP) $(SFLDS) $(SU3FCTS) $(SW_TERM) $(TCHARGE) \
           $(MDFLDS) $(UFLDS) $(UPDATE) $(UTILS) $(VFLDS) $(MRW)
 
+<<<<<<< HEAD
+=======
+# path to openQCD
+
+OPENQCD = ../../../openQCD-1.4
+>>>>>>> master
 
 # Logging option (-mpilog or -mpitrace or -mpianim)
 
@@ -79,19 +85,23 @@ LOGOPTION =
 
 # search path for modules
 
+MDIRH = $(OPENQCD)/modules
+
 MDIR = ../../modules
 
-VPATH = .:$(MDIR)/flags:$(MDIR)/lattice:$(MDIR)/archive:$(MDIR)/linalg:\
-          $(MDIR)/random:$(MDIR)/uflds:$(MDIR)/forces:$(MDIR)/su3fcts:\
-          $(MDIR)/utils:$(MDIR)/mdflds:$(MDIR)/sflds:$(MDIR)/dirac:\
-	  $(MDIR)/sw_term:$(MDIR)/tcharge:$(MDIR)/block:$(MDIR)/sap:\
-	  $(MDIR)/linsolv:$(MDIR)/dfl:$(MDIR)/vflds:$(MDIR)/little:\
-          $(MDIR)/update:$(MDIR)/mrw
+VPATH = .:$(MDIRH)/flags:$(MDIRH)/lattice:$(MDIRH)/archive:$(MDIRH)/linalg:\
+          $(MDIRH)/random:$(MDIRH)/uflds:$(MDIRH)/forces:$(MDIRH)/su3fcts:\
+          $(MDIRH)/utils:$(MDIRH)/mdflds:$(MDIRH)/sflds:$(MDIRH)/dirac:\
+	  $(MDIRH)/sw_term:$(MDIRH)/tcharge:$(MDIRH)/block:$(MDIRH)/sap:\
+	  $(MDIRH)/linsolv:$(MDIRH)/dfl:$(MDIRH)/vflds:$(MDIRH)/little:\
+          $(MDIRH)/update:$(MDIR)/mrw
+
 
 
 # additional include directories
 
-INCPATH = $(MPIR_HOME)/include ../../include
+INCPATH = $(MPIR_HOME)/include  $(OPENQCD)/include/ ../../include
+
 
 
 # additional libraries
