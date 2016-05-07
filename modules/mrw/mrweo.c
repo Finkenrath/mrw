@@ -129,6 +129,8 @@ static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
          mulg5_dble(VOLUME/2,eta);
       }
    }
+   
+   set_tm_parms(1,mu);
       
    if (sp.solver==CGNE)
    {
@@ -141,7 +143,7 @@ static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
    else if (sp.solver==SAP_GCR)
    {
       sap=sap_parms();
-      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy);
+      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy,sp.kappa,sp.mu);
 
       sap_gcr(sp.nkv,sp.nmx,sp.res,mu,eta,psi,stat);
       error_root(stat[0]<0,1,"get_psi [mrweo.c]",
@@ -151,7 +153,7 @@ static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
    else if (sp.solver==DFL_SAP_GCR)
    {
       sap=sap_parms();
-      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy);
+      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy,sp.kappa,sp.mu);
 
       dfl_sap_gcr2(sp.nkv,sp.nmx,sp.res,mu,eta,psi,stat);      
       error_root((stat[0]<0)||(stat[1]<0),1,
@@ -188,14 +190,14 @@ complex_dble mrw1eo(mrw_masses_t ms,int tm,int isp,double *sqnp,double *sqne,int
 {
    complex_dble lnw,z;
    spinor_dble *eta,*psi1,**wsd;
-   tm_parms_t tmp;
+   /*tm_parms_t tmp;
 
    error_root(tm==0,1,"mrw1eo [mrweo.c]",
             "Even-odd mass reweighting not supported yet.");     
-
+   
    tmp=tm_parms();
    if (tmp.eoflg!=1)
-      set_tm_parms(1);
+      set_tm_parms(1);*/
 
    lnw.re=0.0;
    lnw.im=0.0;
@@ -242,14 +244,14 @@ complex_dble mrw2eo(mrw_masses_t ms,int tm,int *isp,complex_dble *lnw1,
 {
    complex_dble lnw,z;
    spinor_dble *eta,*psi1,*psi2,**wsd;
-   tm_parms_t tmp;
+   /*tm_parms_t tmp;
 
    error_root(tm==0,1,"mrw1eo [mrweo.c]",
             "Even-odd mass reweighting not supported yet.");     
 
    tmp=tm_parms();
    if (tmp.eoflg!=1)
-      set_tm_parms(1);
+      set_tm_parms(1);*/
 
    lnw.re=0.0;
    lnw.im=0.0;
@@ -309,11 +311,11 @@ double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,
    double d1,d2,lnw;
    complex_dble z;
    spinor_dble *eta,*psi1,*psi2,**wsd;
-   tm_parms_t tm;
+   /*tm_parms_t tm;
 
    tm=tm_parms();
    if (tm.eoflg!=1)
-      set_tm_parms(1);
+      set_tm_parms(1);*/
 
    lnw=0.0;
    (*sqne)=0.0;

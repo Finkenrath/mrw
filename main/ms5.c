@@ -561,7 +561,7 @@ static void read_sap_parms(void)
    }
 
    MPI_Bcast(bs,4,MPI_INT,0,MPI_COMM_WORLD);
-   set_sap_parms(bs,1,4,5);
+   set_sap_parms(bs,1,4,5,0.0,0.0);
 
    if (append)
       check_sap_parms(fdat);
@@ -1127,7 +1127,7 @@ static void set_data(int nc)
          ieo=0;
          tmp=tm_parms();
          if (tmp.eoflg!=rwp.tmeo)
-            set_tm_parms(rwp.tmeo);
+            set_tm_parms(rwp.tmeo,0.0);
       }
 
       ninv=1;

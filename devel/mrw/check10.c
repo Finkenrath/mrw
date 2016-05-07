@@ -143,7 +143,7 @@ int main(int argc,char *argv[])
    }
 
    MPI_Bcast(bs,4,MPI_INT,0,MPI_COMM_WORLD);
-   set_sap_parms(bs,0,1,1);
+   set_sap_parms(bs,0,1,1,0.0,0.0);
 
    if (my_rank==0)
    {

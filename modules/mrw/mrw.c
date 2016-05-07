@@ -140,7 +140,7 @@ static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
    else if (sp.solver==SAP_GCR)
    {
       sap=sap_parms();
-      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy);
+      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy,sp.kappa,sp.mu);
 
       sap_gcr(sp.nkv,sp.nmx,sp.res,mu,eta,psi,stat);
       error_root(stat[0]<0,1,"get_psi [mrw.c]",
@@ -150,7 +150,7 @@ static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
    else if (sp.solver==DFL_SAP_GCR)
    {
       sap=sap_parms();
-      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy);
+      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy,sp.kappa,sp.mu);
 
       dfl_sap_gcr2(sp.nkv,sp.nmx,sp.res,mu,eta,psi,stat);      
       error_root((stat[0]<0)||(stat[1]<0),1,
