@@ -129,8 +129,6 @@ static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
          mulg5_dble(VOLUME/2,eta);
       }
    }
-   
-   set_tm_parms(1,mu);
       
    if (sp.solver==CGNE)
    {
@@ -215,7 +213,7 @@ complex_dble mrw1eo(mrw_masses_t ms,int tm,int isp,double *sqnp,double *sqne,int
    eta=wsd[0];
    psi1=wsd[1];
    (*sqne)=set_eta(eta);
-
+   
    get_psi(ms.m1,ms.mu1,1,eta,psi1,isp,status);
    
    if (tm)
@@ -266,8 +264,8 @@ complex_dble mrw2eo(mrw_masses_t ms,int tm,int *isp,complex_dble *lnw1,
    psi2=wsd[1];
    eta=wsd[2];
    (*sqne)=set_eta(eta);
-
-   get_psi(ms.m1,ms.mu1,1,eta,psi1,isp[0],status);
+      
+   get_psi(ms.m1,ms.mu1,1,eta,psi1,isp[0],status);   
    get_psi(ms.m2,ms.mu2,tm,eta,psi2,isp[1],status+3);
 
    if (tm)
@@ -332,7 +330,7 @@ double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,
    psi2=wsd[1];
    eta=wsd[2];
    (*sqne)=set_eta(eta);
-
+   
    get_psi(ms.m1,ms.mu1,1,eta,psi1,isp[0],status);
 
    z=spinor_prod5_dble(VOLUME/2,1,psi1,eta);
@@ -351,6 +349,7 @@ double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,
    }
    else
    {
+      
       get_psi(ms.m2,ms.mu2,1,eta,psi2,isp[1],status+3);
 
       z=spinor_prod5_dble(VOLUME/2,1,psi2,eta);
@@ -366,7 +365,7 @@ double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,
          z=spinor_prod_dble(VOLUME/2,1,eta,psi2);
       }
    }
-
+   
    get_psi(ms.m2,ms.mu2,0,psi1,psi2,isp[1],status+6);
 
    lnw=norm_square_dble(VOLUME/2,1,psi2);

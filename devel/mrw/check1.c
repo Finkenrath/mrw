@@ -268,13 +268,11 @@ int main(int argc,char *argv[])
             start_ranlux(0,8910+isp);
             random_sd(VOLUME,wsd[0],1.0);
 				
-			  w0=plaq_wsum_dble(0)/npl;
-				
-			  MPI_Reduce(&w0,&w1,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-			  MPI_Bcast(&w1,1,MPI_DOUBLE,0,MPI_COMM_WORLD); 
-			  ranlxd(&w0,1);
-			  
-			  printf("Plaq %.16f and rand %.8f\n",w1,w0);
+	    w0=plaq_wsum_dble(0)/npl;
+		  
+	    MPI_Reduce(&w0,&w1,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	    MPI_Bcast(&w1,1,MPI_DOUBLE,0,MPI_COMM_WORLD); 
+	    ranlxd(&w0,1);
 				
 				
             bnd_sd2zero(ALL_PTS,wsd[0]);

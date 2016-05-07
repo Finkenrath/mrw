@@ -213,7 +213,7 @@ int main(int argc,char *argv[])
    drmx.im=0.0;
    rmx=0.0;
    
-   for (irw=1;irw<2;irw++)
+   for (irw=0;irw<2;irw++)
    {
       dm=1.0e-2;
 
