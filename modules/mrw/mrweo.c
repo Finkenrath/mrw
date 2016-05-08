@@ -196,7 +196,8 @@ complex_dble mrw1eo(mrw_masses_t ms,int tm,int isp,double *sqnp,double *sqne,int
    tmp=tm_parms();
    if (tmp.eoflg!=1)
       set_tm_parms(1);*/
-
+   set_tm_parms(1,ms.mu_odd0);
+   
    lnw.re=0.0;
    lnw.im=0.0;
    (*sqne)=0.0;
@@ -250,7 +251,9 @@ complex_dble mrw2eo(mrw_masses_t ms,int tm,int *isp,complex_dble *lnw1,
    tmp=tm_parms();
    if (tmp.eoflg!=1)
       set_tm_parms(1);*/
-
+   set_tm_parms(1,ms.mu_odd0);
+   
+   
    lnw.re=0.0;
    lnw.im=0.0;
    (*sqne)=0.0;
@@ -314,7 +317,8 @@ double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,
    tm=tm_parms();
    if (tm.eoflg!=1)
       set_tm_parms(1);*/
-
+   set_tm_parms(1,ms.mu_odd0);
+   
    lnw=0.0;
    (*sqne)=0.0;
    
@@ -365,7 +369,7 @@ double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,
          z=spinor_prod_dble(VOLUME/2,1,eta,psi2);
       }
    }
-   
+
    get_psi(ms.m2,ms.mu2,0,psi1,psi2,isp[1],status+6);
 
    lnw=norm_square_dble(VOLUME/2,1,psi2);

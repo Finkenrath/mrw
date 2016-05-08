@@ -107,11 +107,17 @@
 *
 *   tmeo    Twisted-mass only on even sites [1] or on all sites [0].
 *           Only has effect for mass reweighting factors.
-*
+* 
+* 
+*   mu_odd0 Twisted masss term for odd points if *_EO reweighting is used.
+*           Note that if EO is enabled the twisted mass term of the odd-
+*           points is constant and the parameters mu0, mu are used only for
+*           the even-points. 
+* 
 * Valid examples of sections that can be read by read_mrw_parms() are
 *
 *   [Reweighting factor 1]
-*    mrwfact  TMRW        # or TMRW_EO
+*    mrwfact  TMRW        
 *    kappa0   0.1351
 *    mu0      0.0
 *    mu       0.001
@@ -119,7 +125,20 @@
 *    pwr      0.0
 *    isp      3
 *    nsrc     12
-*
+*    
+*    or for *_EO
+*   
+*   [Reweighting factor 1]
+*    mrwfact  TMRW_EO        
+*    kappa0   0.1351
+*    mu0      0.0
+*    mu       0.001
+*    nm       2
+*    pwr      0.0
+*    isp      3
+*    nsrc     12
+*    mu_odd0  0.0
+* 
 * Up to 32 parameter sets, labeled by an index irw=0,1,..,31, can be
 * specified. Once a set is defined, it cannot be changed by calling
 * set_mrw_parms() again. All parameters must be globally the same.
@@ -150,7 +169,7 @@ static char mrwtag[NAME_SIZE][MRWFACTS]={"TMRW","TMRW_EO","TMRW1","TMRW1_EO",
                           "MRW","MRW_EO","MRW_ISO","MRW_TF"};
 static mrwfact_t mrwfact[]={TMRW,TMRW_EO,TMRW1,TMRW1_EO,TMRW2,TMRW2_EO,
                             TMRW3,TMRW3_EO,TMRW4,TMRW4_EO,MRW,MRW_EO,MRW_ISO,MRW_TF};
-static mrw_parms_t rw0={MRWFACTS,0,{0,0},0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+static mrw_parms_t rw0={MRWFACTS,0,{0,0},0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 static mrw_parms_t rw[IMRWMAX];
 
 
@@ -167,10 +186,10 @@ void init_mrw(void)
 
 mrw_parms_t set_mrw_parms(int irw,mrwfact_t mrwfact,double kappa0,double kappa,
                           double mu0,double mu,double gamma,double kappa2,double pwr,
-                          int isp1,int isp2,int nm,int nsrc,int tmeo)
+                          int isp1,int isp2,int nm,int nsrc,int tmeo,double mu_odd0)
 {
    int iprms[7],ie;
-   double dprms[7];
+   double dprms[8];
    double m,m0;
    
    if (init==0)
@@ -230,9 +249,10 @@ mrw_parms_t set_mrw_parms(int irw,mrwfact_t mrwfact,double kappa0,double kappa,
       dprms[4]=gamma;
       dprms[5]=kappa2;
       dprms[6]=pwr;
-		
+      dprms[7]=mu_odd0;
+
       MPI_Bcast(iprms,7,MPI_INT,0,MPI_COMM_WORLD);
-      MPI_Bcast(dprms,7,MPI_DOUBLE,0,MPI_COMM_WORLD);
+      MPI_Bcast(dprms,8,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
       ie=0;
       ie|=(iprms[0]!=irw);
@@ -248,7 +268,9 @@ mrw_parms_t set_mrw_parms(int irw,mrwfact_t mrwfact,double kappa0,double kappa,
       ie|=(dprms[3]!=mu);
       ie|=(dprms[4]!=gamma);
       ie|=(dprms[5]!=kappa2);
-		ie|=(dprms[6]!=pwr);
+      ie|=(dprms[6]!=pwr);
+      ie|=(dprms[7]!=mu_odd0);
+      
       
       error(ie!=0,1,"set_mrw_parms [mrw_parms.c]",
             "Parameters are not global");
@@ -291,6 +313,8 @@ mrw_parms_t set_mrw_parms(int irw,mrwfact_t mrwfact,double kappa0,double kappa,
    rw[irw].m0=m0;
    rw[irw].m=m;
    
+   rw[irw].mu_odd0=mu_odd0;
+   
    return rw[irw];
 }
 
@@ -316,6 +340,7 @@ void read_mrw_parms(int irw)
    int my_rank;
    int idr,nm,nsrc,isp[2],isp2,tmeo;
    double kappa0,kappa,mu0,mu,gamma,kappa2,pwr;
+   double mu_odd0;
    char line[NAME_SIZE];
 
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
@@ -333,6 +358,7 @@ void read_mrw_parms(int irw)
    gamma=1.0;
    kappa2=0.0;
    pwr=0.0;
+   mu_odd0=0.0;
 	
    if (my_rank==0)
    {
@@ -353,6 +379,7 @@ void read_mrw_parms(int irw)
          read_line("kappa0","%lf",&kappa0);
          read_line("mu0","%lf",&mu0);
          read_line("mu","%lf",&mu);
+	 read_line("mu_odd0","%lf",&mu_odd0);
       }
       else if (strcmp(line,"TMRW1")==0)
       {
@@ -367,6 +394,7 @@ void read_mrw_parms(int irw)
          read_line("kappa0","%lf",&kappa0);
          read_line("mu0","%lf",&mu0);
          read_line("mu","%lf",&mu);
+	 read_line("mu_odd0","%lf",&mu_odd0);
       }
       else if (strcmp(line,"TMRW2")==0)
       {
@@ -385,6 +413,7 @@ void read_mrw_parms(int irw)
          read_line("mu0","%lf",&mu0);
          read_line("mu","%lf",&mu);
          read_line("kappa","%lf",&kappa);
+	 read_line("mu_odd0","%lf",&mu_odd0);
       }
       else if (strcmp(line,"TMRW3")==0)
       {
@@ -403,6 +432,7 @@ void read_mrw_parms(int irw)
          read_line("kappa","%lf",&kappa);
          read_line("mu0","%lf",&mu0);
          read_line("mu","%lf",&mu);
+	 read_line("mu_odd0","%lf",&mu_odd0);
       }
       else if (strcmp(line,"TMRW4")==0)
       {
@@ -421,6 +451,7 @@ void read_mrw_parms(int irw)
          read_line("kappa","%lf",&kappa);
          read_line("mu0","%lf",&mu0);
          read_line("mu","%lf",&mu);
+	 read_line("mu_odd0","%lf",&mu_odd0);
       }
       else if (strcmp(line,"MRW")==0)
       {
@@ -435,6 +466,7 @@ void read_mrw_parms(int irw)
          read_line("kappa0","%lf",&kappa0);
          read_line("mu0","%lf",&mu0);
          read_line("kappa","%lf",&kappa);
+	 read_line("mu_odd0","%lf",&mu_odd0);
       }
       else if (strcmp(line,"MRW_ISO")==0)
       {
@@ -485,6 +517,7 @@ void read_mrw_parms(int irw)
       MPI_Bcast(&kappa,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
       MPI_Bcast(&mu0,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
       MPI_Bcast(&mu,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+      MPI_Bcast(&mu_odd0,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
       MPI_Bcast(&gamma,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
       MPI_Bcast(&kappa2,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
       MPI_Bcast(&nm,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -495,7 +528,7 @@ void read_mrw_parms(int irw)
    }
    
    set_mrw_parms(irw,mrwfact[idr],kappa0,kappa,mu0,mu,gamma,kappa2,pwr,
-                 isp[0],isp[1],nm,nsrc,tmeo);
+                 isp[0],isp[1],nm,nsrc,tmeo,mu_odd0);
 }
 
 
@@ -514,7 +547,7 @@ void print_mrw_parms(void)
             printf("Reweighting factor %d:\n",irw);
             printf("%s factor\n",mrwtag[rw[irw].mrwfact]);
 
-            if ((rw[irw].mrwfact==TMRW)||(rw[irw].mrwfact==TMRW_EO))
+            if (rw[irw].mrwfact==TMRW)
             {
                n=fdigits(rw[irw].kappa0);
                printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
@@ -524,11 +557,26 @@ void print_mrw_parms(void)
                printf("mu = %.*f\n",IMAX(n,1),rw[irw].mu);
                printf("nm = %d\n",rw[irw].nm);
                n=fdigits(rw[irw].pwr);
-					printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
                printf("isp = %d\n",rw[irw].isp[0]);
                printf("nsrc = %d\n\n",rw[irw].nsrc);
             }
-            else if ((rw[irw].mrwfact==TMRW1)||(rw[irw].mrwfact==TMRW1_EO))
+            else if (rw[irw].mrwfact==TMRW_EO)
+            {
+               n=fdigits(rw[irw].kappa0);
+               printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
+               n=fdigits(rw[irw].mu0);
+               printf("mu0 = %.*f\n",IMAX(n,1),rw[irw].mu0);
+               n=fdigits(rw[irw].mu);
+               printf("mu = %.*f\n",IMAX(n,1),rw[irw].mu);
+	       printf("mu_odd0 = %.*f\n",IMAX(n,1),rw[irw].mu_odd0);
+               printf("nm = %d\n",rw[irw].nm);
+               n=fdigits(rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+               printf("isp = %d\n",rw[irw].isp[0]);
+               printf("nsrc = %d\n\n",rw[irw].nsrc);
+            }
+            else if (rw[irw].mrwfact==TMRW1)
             {
                n=fdigits(rw[irw].kappa0);
                printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
@@ -538,11 +586,26 @@ void print_mrw_parms(void)
                printf("mu = %.*f\n",IMAX(n,1),rw[irw].mu);
                printf("nm = %d\n",rw[irw].nm);
                n=fdigits(rw[irw].pwr);
-					printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
                printf("isp = %d\n",rw[irw].isp[0]);
                printf("nsrc = %d\n\n",rw[irw].nsrc);
             }
-            else if ((rw[irw].mrwfact==TMRW2)||(rw[irw].mrwfact==TMRW2_EO))
+            else if (rw[irw].mrwfact==TMRW1_EO)
+            {
+               n=fdigits(rw[irw].kappa0);
+               printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
+               n=fdigits(rw[irw].mu0);
+               printf("mu0 = %.*f\n",IMAX(n,1),rw[irw].mu0);
+               n=fdigits(rw[irw].mu);
+               printf("mu = %.*f\n",IMAX(n,1),rw[irw].mu);
+	       printf("mu_odd0 = %.*f\n",IMAX(n,1),rw[irw].mu_odd0);
+               printf("nm = %d\n",rw[irw].nm);
+               n=fdigits(rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+               printf("isp = %d\n",rw[irw].isp[0]);
+               printf("nsrc = %d\n\n",rw[irw].nsrc);
+            }
+            else if (rw[irw].mrwfact==TMRW2)
             {
                n=fdigits(rw[irw].kappa0);
                printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
@@ -554,11 +617,28 @@ void print_mrw_parms(void)
                printf("kappa = %.*f\n",IMAX(n,1),rw[irw].kappa);
                printf("nm = %d\n",rw[irw].nm);
                n=fdigits(rw[irw].pwr);
-					printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
                printf("isp = %d\n",rw[irw].isp[0]);
                printf("nsrc = %d\n\n",rw[irw].nsrc);
             }
-            else if ((rw[irw].mrwfact==TMRW3)||(rw[irw].mrwfact==TMRW3_EO))
+            else if (rw[irw].mrwfact==TMRW2_EO)
+            {
+               n=fdigits(rw[irw].kappa0);
+               printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
+               n=fdigits(rw[irw].mu0);
+               printf("mu0 = %.*f\n",IMAX(n,1),rw[irw].mu0);
+               n=fdigits(rw[irw].mu);
+               printf("mu = %.*f\n",IMAX(n,1),rw[irw].mu);
+               n=fdigits(rw[irw].kappa);
+               printf("kappa = %.*f\n",IMAX(n,1),rw[irw].kappa);
+	       printf("mu_odd0 = %.*f\n",IMAX(n,1),rw[irw].mu_odd0);
+               printf("nm = %d\n",rw[irw].nm);
+               n=fdigits(rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+               printf("isp = %d\n",rw[irw].isp[0]);
+               printf("nsrc = %d\n\n",rw[irw].nsrc);
+            }
+            else if (rw[irw].mrwfact==TMRW3)
             {
                n=fdigits(rw[irw].kappa0);
                printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
@@ -570,11 +650,28 @@ void print_mrw_parms(void)
                printf("kappa = %.*f\n",IMAX(n,1),rw[irw].kappa);
                printf("nm = %d\n",rw[irw].nm);
                n=fdigits(rw[irw].pwr);
-					printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
                printf("isp = %d %d\n",rw[irw].isp[0],rw[irw].isp[1]);
                printf("nsrc = %d\n\n",rw[irw].nsrc);
             }
-            else if ((rw[irw].mrwfact==TMRW4)||(rw[irw].mrwfact==TMRW4_EO))
+            else if (rw[irw].mrwfact==TMRW3_EO)
+            {
+               n=fdigits(rw[irw].kappa0);
+               printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
+               n=fdigits(rw[irw].mu0);
+               printf("mu0 = %.*f\n",IMAX(n,1),rw[irw].mu0);
+               n=fdigits(rw[irw].mu);
+               printf("mu = %.*f\n",IMAX(n,1),rw[irw].mu);
+               n=fdigits(rw[irw].kappa);
+               printf("kappa = %.*f\n",IMAX(n,1),rw[irw].kappa);
+	       printf("mu_odd0 = %.*f\n",IMAX(n,1),rw[irw].mu_odd0);
+               printf("nm = %d\n",rw[irw].nm);
+               n=fdigits(rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+               printf("isp = %d %d\n",rw[irw].isp[0],rw[irw].isp[1]);
+               printf("nsrc = %d\n\n",rw[irw].nsrc);
+            }
+            else if (rw[irw].mrwfact==TMRW4)
             {
                n=fdigits(rw[irw].kappa0);
                printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
@@ -586,11 +683,28 @@ void print_mrw_parms(void)
                printf("kappa = %.*f\n",IMAX(n,1),rw[irw].kappa);
                printf("nm = %d\n",rw[irw].nm);
                n=fdigits(rw[irw].pwr);
-					printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
                printf("isp = %d %d\n",rw[irw].isp[0],rw[irw].isp[1]);
                printf("nsrc = %d\n\n",rw[irw].nsrc);
             }
-            else if ((rw[irw].mrwfact==MRW)||(rw[irw].mrwfact==MRW_EO))
+            else if (rw[irw].mrwfact==TMRW4_EO)
+            {
+               n=fdigits(rw[irw].kappa0);
+               printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
+               n=fdigits(rw[irw].mu0);
+               printf("mu0 = %.*f\n",IMAX(n,1),rw[irw].mu0);
+               n=fdigits(rw[irw].mu);
+               printf("mu = %.*f\n",IMAX(n,1),rw[irw].mu);
+               n=fdigits(rw[irw].kappa);
+               printf("kappa = %.*f\n",IMAX(n,1),rw[irw].kappa);
+	       printf("mu_odd0 = %.*f\n",IMAX(n,1),rw[irw].mu_odd0);
+               printf("nm = %d\n",rw[irw].nm);
+               n=fdigits(rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+               printf("isp = %d %d\n",rw[irw].isp[0],rw[irw].isp[1]);
+               printf("nsrc = %d\n\n",rw[irw].nsrc);
+            }
+            else if (rw[irw].mrwfact==MRW)
             {
                n=fdigits(rw[irw].kappa0);
                printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
@@ -600,7 +714,23 @@ void print_mrw_parms(void)
                printf("kappa = %.*f\n",IMAX(n,1),rw[irw].kappa);
                printf("nm = %d\n",rw[irw].nm);
                n=fdigits(rw[irw].pwr);
-					printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+               printf("isp = %d\n",rw[irw].isp[0]);
+               printf("nsrc = %d\n",rw[irw].nsrc);
+               printf("tmeo = %d\n\n",rw[irw].tmeo);
+            }
+            else if (rw[irw].mrwfact==MRW_EO)
+            {
+               n=fdigits(rw[irw].kappa0);
+               printf("kappa0 = %.*f\n",IMAX(n,1),rw[irw].kappa0);
+               n=fdigits(rw[irw].mu0);
+               printf("mu0 = %.*f\n",IMAX(n,1),rw[irw].mu0);
+               n=fdigits(rw[irw].kappa);
+               printf("kappa = %.*f\n",IMAX(n,1),rw[irw].kappa);
+	       printf("mu_odd0 = %.*f\n",IMAX(n,1),rw[irw].mu_odd0);
+               printf("nm = %d\n",rw[irw].nm);
+               n=fdigits(rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
                printf("isp = %d\n",rw[irw].isp[0]);
                printf("nsrc = %d\n",rw[irw].nsrc);
                printf("tmeo = %d\n\n",rw[irw].tmeo);
@@ -615,7 +745,7 @@ void print_mrw_parms(void)
                printf("kappa = %.*f\n",IMAX(n,1),rw[irw].kappa);
                printf("nm = %d\n",rw[irw].nm);
                n=fdigits(rw[irw].pwr);
-					printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
                printf("isp = %d %d\n",rw[irw].isp[0],rw[irw].isp[1]);
                printf("nsrc = %d\n",rw[irw].nsrc);
                printf("tmeo = %d\n\n",rw[irw].tmeo);
@@ -636,7 +766,7 @@ void print_mrw_parms(void)
                printf("kappa2 = %.*f\n",IMAX(n,1),rw[irw].kappa2);
                printf("nm = %d\n",rw[irw].nm);
                n=fdigits(rw[irw].pwr);
-					printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
+	       printf("pwr = %.*f\n",IMAX(n,1),rw[irw].pwr);
                printf("isp = %d %d\n",rw[irw].isp[0],rw[irw].isp[1]);
                printf("nsrc = %d\n",rw[irw].nsrc);
                printf("tmeo = %d\n\n",rw[irw].tmeo);
@@ -652,7 +782,7 @@ void write_mrw_parms(FILE *fdat)
    int my_rank,endian;
    int iw,irw;
    stdint_t istd[7];
-   double dstd[7];
+   double dstd[8];
 
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
    endian=endianness();
@@ -677,17 +807,18 @@ void write_mrw_parms(FILE *fdat)
             dstd[4]=rw[irw].gamma;
             dstd[5]=rw[irw].kappa2;
             dstd[6]=rw[irw].pwr;
+	    dstd[7]=rw[irw].mu_odd0;
 				
             if (endian==BIG_ENDIAN)
             {
                bswap_int(7,istd);
-               bswap_double(7,dstd);
+               bswap_double(8,dstd);
             }
             
             iw=fwrite(istd,sizeof(stdint_t),7,fdat);
-            iw+=fwrite(dstd,sizeof(double),7,fdat);
+            iw+=fwrite(dstd,sizeof(double),8,fdat);
 
-            error_root(iw!=(7+7),1,"write_mrw_parms [mrw_parms.c]",
+            error_root(iw!=(8+7),1,"write_mrw_parms [mrw_parms.c]",
                        "Incorrect write count");
          }
       }
@@ -714,7 +845,7 @@ void check_mrw_parms(FILE *fdat)
          if (rw[irw].mrwfact!=MRWFACTS)
          {
             ir=fread(istd,sizeof(stdint_t),7,fdat);
-            ir+=fread(dstd,sizeof(double),7,fdat);
+            ir+=fread(dstd,sizeof(double),8,fdat);
 
             if (endian==BIG_ENDIAN)
             {
@@ -735,9 +866,10 @@ void check_mrw_parms(FILE *fdat)
             ie|=(dstd[3]!=rw[irw].mu);
             ie|=(dstd[4]!=rw[irw].gamma);
             ie|=(dstd[5]!=rw[irw].kappa2);
-				ie|=(dstd[6]!=rw[irw].pwr);
-
-            error_root(ir!=(7+7),1,"check_mrw_parms [mrw_parms.c]",
+	    ie|=(dstd[6]!=rw[irw].pwr);
+	    ie|=(dstd[7]!=rw[irw].mu_odd0);
+	    
+            error_root(ir!=(8+7),1,"check_mrw_parms [mrw_parms.c]",
                        "Incorrect read count");
          }
       }
@@ -802,6 +934,7 @@ mrw_masses_t get_mrw_masses(int irw,int k)
    ms.m2=0.0;
    ms.mu2=0.0;
    ms.d2=0.0;
+   ms.mu_odd0=0.0;
    
    rw=mrw_parms(irw);
    mrwfact=rw.mrwfact;
@@ -809,18 +942,31 @@ mrw_masses_t get_mrw_masses(int irw,int k)
    error_root(((k<0)||(k>=rw.nm)),1,"get_mrw_masses [mrw_parms.c]",
                "Mass interpolation step out of bounds");
    
-   if ((mrwfact==TMRW)||(mrwfact==TMRW_EO))
+   if (mrwfact==TMRW)
    {
       ms.m1=rw.m0;
       ms.mu1=interpolation(k,rw.mu0,rw.mu,rw.nm,rw.pwr,&(ms.d1));
    }
-   else if ((mrwfact==TMRW1)||(mrwfact==TMRW1_EO))
+   else if (mrwfact==TMRW_EO)
+   {
+      ms.m1=rw.m0;
+      ms.mu1=interpolation(k,rw.mu0,rw.mu,rw.nm,rw.pwr,&(ms.d1));
+      ms.mu_odd0=rw.mu_odd0;
+   }
+   else if (mrwfact==TMRW1)
    {
       ms.m1=rw.m0;
       ms.mu1=interpolation(k,rw.mu0*rw.mu0,rw.mu*rw.mu,rw.nm,rw.pwr,&(ms.d1));
       ms.mu1=sqrt(ms.mu1);
    }
-   else if ((mrwfact==TMRW2)||(mrwfact==TMRW2_EO))
+   else if (mrwfact==TMRW1_EO)
+   {
+      ms.m1=rw.m0;
+      ms.mu1=interpolation(k,rw.mu0*rw.mu0,rw.mu*rw.mu,rw.nm,rw.pwr,&(ms.d1));
+      ms.mu1=sqrt(ms.mu1);
+      ms.mu_odd0=rw.mu_odd0;
+   }
+   else if (mrwfact==TMRW2)
    {
       ms.m1=rw.m0;
       ms.mu1=interpolation(k,rw.mu0*rw.mu0,rw.mu*rw.mu,rw.nm,rw.pwr,&(ms.d1));
@@ -831,7 +977,19 @@ mrw_masses_t get_mrw_masses(int irw,int k)
       
       ms.mu1=sqrt(ms.mu1);
    }
-   else if ((mrwfact==TMRW3)||(mrwfact==TMRW3_EO))
+   else if (mrwfact==TMRW2_EO)
+   {
+      ms.m1=rw.m0;
+      ms.mu1=interpolation(k,rw.mu0*rw.mu0,rw.mu*rw.mu,rw.nm,rw.pwr,&(ms.d1));
+
+      ms.m2=rw.m;
+      ms.d2=-ms.d1;
+      ms.mu2=sqrt(ms.mu1+rw.mu0*rw.mu0-rw.mu*rw.mu+ms.d1);
+      
+      ms.mu1=sqrt(ms.mu1);
+      ms.mu_odd0=rw.mu_odd0;
+   }
+   else if (mrwfact==TMRW3)
    {
       ms.m1=rw.m0;
       ms.mu1=interpolation(k,rw.mu0,rw.mu,rw.nm,rw.pwr,&(ms.d1));
@@ -840,7 +998,17 @@ mrw_masses_t get_mrw_masses(int irw,int k)
       ms.d2=ms.d1;
       ms.mu2=-(ms.mu1+ms.d1);
    }
-   else if ((mrwfact==TMRW4)||(mrwfact==TMRW4_EO))
+   else if (mrwfact==TMRW3_EO)
+   {
+      ms.m1=rw.m0;
+      ms.mu1=interpolation(k,rw.mu0,rw.mu,rw.nm,rw.pwr,&(ms.d1));
+
+      ms.m2=rw.m;
+      ms.d2=ms.d1;
+      ms.mu2=-(ms.mu1+ms.d1);
+      ms.mu_odd0=rw.mu_odd0;
+   }
+   else if (mrwfact==TMRW4)
    {
       ms.m1=rw.m0;
       ms.mu1=interpolation(k,rw.mu0*rw.mu0,rw.mu*rw.mu,rw.nm,rw.pwr,&(ms.d1));
@@ -854,10 +1022,31 @@ mrw_masses_t get_mrw_masses(int irw,int k)
       
       ms.mu1=sqrt(ms.mu1);
    }
-   else if ((mrwfact==MRW)||(mrwfact==MRW_EO))
+   else if (mrwfact==TMRW4_EO)
+   {
+      ms.m1=rw.m0;
+      ms.mu1=interpolation(k,rw.mu0*rw.mu0,rw.mu*rw.mu,rw.nm,rw.pwr,&(ms.d1));
+
+      ms.m2=rw.m;
+      ms.d2=-ms.d1;
+      if (k==rw.nm-1)
+         ms.mu2=rw.mu0;
+      else
+         ms.mu2=sqrt(ms.mu1+ms.d1);
+      
+      ms.mu1=sqrt(ms.mu1);
+      ms.mu_odd0=rw.mu_odd0;
+   }
+   else if (mrwfact==MRW)
    {
       ms.mu1=rw.mu0;
       ms.m1=interpolation(k,rw.m0,rw.m,rw.nm,rw.pwr,&(ms.d1));
+   }
+   else if (mrwfact==MRW_EO)
+   {
+      ms.mu1=rw.mu0;
+      ms.m1=interpolation(k,rw.m0,rw.m,rw.nm,rw.pwr,&(ms.d1));
+      ms.mu_odd0=rw.mu_odd0;
    }
    else if (mrwfact==MRW_ISO)
    {

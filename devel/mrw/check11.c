@@ -256,7 +256,7 @@ static double check_mrw_inter(int irw,int *ie)
 int main(int argc,char *argv[])
 {
    int my_rank,irw,nm,ie,iea,p1,nrw,nmx;
-   double kappa0,kappa,kappa2,mu,mu0,gamma,p;
+   double kappa0,kappa,kappa2,mu,mu0,gamma,p,mu_odd0;
    double d,dmx;
    FILE *flog=NULL,*fin=NULL;
    mrw_parms_t rw;
@@ -337,6 +337,7 @@ int main(int argc,char *argv[])
    mu=0.0;
    gamma=0.8;
    kappa2=0.1316;
+   mu_odd0=0.0;
    nm=24;
    
    dmx=0.0;
@@ -359,7 +360,7 @@ int main(int argc,char *argv[])
          }   
 
          init_mrw();
-         set_mrw_parms(irw,mrwfact[irw],kappa0,kappa,mu0,mu,gamma,kappa2,p,0,0,nm,1,0);
+         set_mrw_parms(irw,mrwfact[irw],kappa0,kappa,mu0,mu,gamma,kappa2,p,0,0,nm,1,0,mu_odd0);
          
          d=check_mrw_inter(irw,&ie);
          

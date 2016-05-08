@@ -1049,7 +1049,8 @@ static void reweight_wsize(int *nws,int *nwsd,int *nwv,int *nwvd)
 
          nsd=2;
          solver_wsize(isp,nsd,0,nws,nwsd,nwv,nwvd);
-      }   }
+      }
+   }
 }
 
 

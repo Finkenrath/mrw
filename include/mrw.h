@@ -25,13 +25,14 @@ typedef struct
 {
    mrwfact_t mrwfact;
    int nsrc,isp[2],nm,tmeo;
-   double kappa0,kappa,m0,m,mu0,mu,gamma,kappa2,pwr;
+   double kappa0,kappa,m0,m,mu0,mu,gamma,kappa2,pwr,mu_odd0;
 } mrw_parms_t;
 
 typedef struct
 {
    double m1,mu1,d1;
    double m2,mu2,d2;
+   double mu_odd0;
 } mrw_masses_t;
 
 
@@ -53,7 +54,7 @@ extern double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,double *sqnp,
 extern void init_mrw(void);
 extern mrw_parms_t set_mrw_parms(int irw,mrwfact_t mrwfact,double kappa0,double kappa,
                                  double mu0,double mu,double gamma,double kappa2,double pwr,
-                                 int isp1,int isp2,int nm,int nsrc,int tmeo);
+                                 int isp1,int isp2,int nm,int nsrc,int tmeo,double mu_odd0);
 extern mrw_parms_t mrw_parms(int irw);
 extern void read_mrw_parms(int irw);
 extern void print_mrw_parms(void);

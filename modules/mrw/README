@@ -32,7 +32,7 @@ List of functions
 
  mrw_parms_t set_mrw_parms(int irw,mrwfact_t mrwfact,double kappa0,double kappa,
                            double mu0,double mu,double gamma,double kappa2,
-                           int isp1,int isp2,int nm,int pwr,int nsrc,int tmeo)
+                           int isp1,int isp2,int nm,double pwr,int nsrc,int tmeo,double mu_odd0)
   Sets the parameters in the reweighting factor parameter set number
   irw and returns a structure containing them (see the notes).
 
