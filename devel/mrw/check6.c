@@ -249,6 +249,7 @@ int main(int argc,char *argv[])
          ms.m1=m0;
          ms.d1=dm;
          ms.mu1=mu0;
+	 ms.mu_odd0=0.1;
 
          if (irw==0)
          {

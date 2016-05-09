@@ -52,7 +52,8 @@ mrwfact      TMRW3_EO
 kappa0       0.13519       
 kappa        0.135 
 mu0          0.0
-mu           0.05   
+mu           0.05  
+mu_odd0      0.0
 isp          1 1      
 nsrc         6     
 nm           24
@@ -66,6 +67,8 @@ nmr          4
 ncy          5           
 nmx          48          
 res          1.0e-11 
+kappa        0.125
+mu           0.01
 
 [Solver 1]
 solver       SAP_GCR 
@@ -75,6 +78,8 @@ nmr          4
 ncy          5           
 nmx          48          
 res          1.0e-11     
+kappa        0.125
+mu           0.01
 
 [SAP]
 bs           4 4 4 4

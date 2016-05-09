@@ -274,6 +274,8 @@ int main(int argc,char *argv[])
                         "dfl_modes failed");
          }      
 
+         ms.mu_odd0=0.0;
+         
          if (irw==0)
          {
             for (n=0;n<nsrc;n++)

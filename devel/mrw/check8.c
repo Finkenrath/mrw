@@ -243,6 +243,8 @@ int main(int argc,char *argv[])
                         "dfl_modes failed");
          }      
 
+         ms.mu_odd0=0.1;
+         
          start_ranlux(0,8911+isp);
          if (irw==0)
          {

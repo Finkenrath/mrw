@@ -248,6 +248,7 @@ int main(int argc,char *argv[])
             ms.m2=m0;
             ms.d2=dm;
             ms.mu2=mu0;
+	    ms.mu_odd0=0.0;
 
             lnr=mrw2eo(ms,1,ispp,lnw1,sqnp,&sqne,status);            
             dr.re=fabs(lnr.re-(2.0*mu0*dm+dm*dm)*sqnp[0]);
@@ -264,6 +265,7 @@ int main(int argc,char *argv[])
             ms.m2=m0;
             ms.d2=-dm;
             ms.mu2=mu0;
+	    ms.mu_odd0=0.0;
 
             lnr=mrw2eo(ms,1,ispp,lnw1,sqnp,&sqne,status);            
             dr.re=fabs(lnr.re+dm*dm*sqnp[0]);

@@ -235,7 +235,7 @@ int main(int argc,char *argv[])
             m0=-0.0123;
             mu0=0.05;
          }
-      
+
          random_ud();
 
          if (isp==2)
@@ -245,6 +245,9 @@ int main(int argc,char *argv[])
                         "dfl_modes failed");
          }      
          
+         ms.mu_odd0=0.0;
+	 set_tm_parms(1,ms.mu_odd0);
+   
          if (irw==0)
          {
             ms.m1=m0;
@@ -253,7 +256,7 @@ int main(int argc,char *argv[])
             ms.m2=0.0;
             ms.d2=0.0;
             ms.mu2=0.0;
-   
+
             start_ranlux(0,8910+isp);
             mrw1eo(ms,1,isp,&lnr0,&sqn0,status);
             lnr0*=dm*dm;
@@ -300,7 +303,7 @@ int main(int argc,char *argv[])
             ms.m1=m0;
             ms.d1=-ms.d1;
             ms.mu1=sqrt(2.0)*dm;
-  
+
             start_ranlux(0,8910+isp);
             lnr1=mrw3(ms,ispp,lnrw1,sqnp,&sqn1,status);
             
@@ -315,7 +318,7 @@ int main(int argc,char *argv[])
             ms.m2=m0;
             ms.d2=-ms.d1;
             ms.mu2=mu0+dm;
-   
+
             start_ranlux(0,8910+isp);
             lnr0=mrw3(ms,ispp,lnrw1,sqnp,&sqn0,status);
             
@@ -330,7 +333,7 @@ int main(int argc,char *argv[])
             dsmx=ds;
 
          if (my_rank==0)
-         {            
+         {
             if ((isp==0)||(isp==1))
                printf("status = %d\n",status[0]);
             else if (isp==2)
@@ -344,17 +347,17 @@ int main(int argc,char *argv[])
                printf("mrw3(m1=m2) vs. mrw3(m1=m2,D1<->D2): ");
             else
                printf("mrw3(m1=m2,d2=-d1,mu2=mu1+d1): ");
-            
+
             if (irw<3)
                printf("diff = %.1e, |1-sqn1/sqn0| = %.1e\n\n",dr,ds);
             else
                printf("diff = %.1e\n\n",dr);
-         }      
-      
+         }
+
          error_chk();
       }
    }
-   
+
    if (my_rank==0)
    {
       printf("\n");
