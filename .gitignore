@@ -6,6 +6,7 @@ main/ms[1-9]
 main/ym[1-9]
 check[1-9]
 time[1-9]
+*Recangle_EO.in
 check1[0-9]
 *.log
 *.cnfg

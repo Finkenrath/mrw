@@ -95,21 +95,24 @@ static double set_eta(spinor_dble *eta)
    return norm_square_dble(VOLUME,1,eta);
 }
 
+static double get_kappa(double m)
+{
+ return 1.0/(2.0*(4.0+m));
+}
 
 static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
                     spinor_dble *psi,int isp, int* stat)
 {
+   double kappa;
    spinor_dble **wsd;
    solver_parms_t sp;
    sap_parms_t sap;
-
+   
    stat[0]=0;
    stat[1]=0;
    stat[2]=0;
       
    sp=solver_parms(isp);
-
-   set_sw_parms(m);
 
    if (sp.solver==CGNE)
    {
@@ -129,6 +132,8 @@ static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
       }
    }
       
+   set_sw_parms(m);  
+   
    if (sp.solver==CGNE)
    {
       tmcg(sp.nmx,sp.res,mu,eta,wsd[0],stat);
@@ -139,8 +144,9 @@ static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
    }
    else if (sp.solver==SAP_GCR)
    {
+      kappa=get_kappa(m);
       sap=sap_parms();
-      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy,sp.kappa,sp.mu);
+      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy,kappa,sp.mu);
 
       sap_gcr(sp.nkv,sp.nmx,sp.res,mu,eta,psi,stat);
       error_root(stat[0]<0,1,"get_psi [mrw.c]",
@@ -149,8 +155,9 @@ static void get_psi(double m,double mu,int ihc,spinor_dble *eta,
    }
    else if (sp.solver==DFL_SAP_GCR)
    {
+      kappa=get_kappa(m);
       sap=sap_parms();
-      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy,sp.kappa,sp.mu);
+      set_sap_parms(sap.bs,sp.isolv,sp.nmr,sp.ncy,kappa,sp.mu);
 
       dfl_sap_gcr2(sp.nkv,sp.nmx,sp.res,mu,eta,psi,stat);      
       error_root((stat[0]<0)||(stat[1]<0),1,

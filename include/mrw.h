@@ -50,6 +50,7 @@ extern complex_dble mrw2eo(mrw_masses_t ms,int tm,int *isp,complex_dble *lnw1,
                          double *sqnp,double *sqne,int *status);
 extern double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,double *sqnp,
                    double *sqne,int *status);
+extern void get_cswdet(mrw_masses_t ms,complex_dble *cswdet);
 /* MRW_PARMS_C */
 extern void init_mrw(void);
 extern mrw_parms_t set_mrw_parms(int irw,mrwfact_t mrwfact,double kappa0,double kappa,

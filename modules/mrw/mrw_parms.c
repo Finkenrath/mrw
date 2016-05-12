@@ -18,7 +18,7 @@
 *
 *   mrw_parms_t set_mrw_parms(int irw,mrwfact_t mrwfact,double kappa0,double kappa,
 *                             double mu0,double mu,double gamma,double kappa2, double pwr,
-*                             int isp1,int isp2,int nm,int nsrc,int tmeo)
+*                             int isp1,int isp2,int nm,int nsrc,int tmeo,double mu_odd0)
 *     Sets the parameters in the reweighting factor parameter set number
 *     irw and returns a structure containing them (see the notes).
 *
@@ -133,11 +133,11 @@
 *    kappa0   0.1351
 *    mu0      0.0
 *    mu       0.001
+*    mu_odd0  0.0
 *    nm       2
 *    pwr      0.0
 *    isp      3
 *    nsrc     12
-*    mu_odd0  0.0
 * 
 * Up to 32 parameter sets, labeled by an index irw=0,1,..,31, can be
 * specified. Once a set is defined, it cannot be changed by calling
@@ -831,7 +831,7 @@ void check_mrw_parms(FILE *fdat)
    int my_rank,endian;
    int ir,irw,ie;
    stdint_t istd[7];
-   double dstd[7];
+   double dstd[8];
 
    MPI_Comm_rank(MPI_COMM_WORLD,&my_rank);
    endian=endianness();
@@ -850,7 +850,7 @@ void check_mrw_parms(FILE *fdat)
             if (endian==BIG_ENDIAN)
             {
                bswap_int(7,istd);
-               bswap_double(7,dstd);
+               bswap_double(8,dstd);
             }
             
             ie|=(istd[0]!=(stdint_t)(irw));            

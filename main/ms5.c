@@ -50,6 +50,7 @@ static struct
    int *nsrc;
    int *nm;
    int *ndbl;
+   int *eodet;
 } file_head;
 
 static struct
@@ -77,16 +78,21 @@ static void alloc_data(void)
 {
    int nrw,*nsrc,*nm,*ndbl;
    int n,l;
+   int eod,*eodet;
    double **pp,*p;
 
    nrw=file_head.nrw;
    nsrc=file_head.nsrc;
    nm=file_head.nm;
    ndbl=file_head.ndbl;
+   eodet=file_head.eodet;
    n=0;
 
    for (l=0;l<nrw;l++)
-      n+=(nm[l]*nsrc[l]*ndbl[l]);
+   {
+      eod=(nm[l]+1)*2*eodet[l];
+      n+=(nm[l]*nsrc[l]*ndbl[l])+eod;
+   }
 
    pp=malloc(nrw*sizeof(*pp));
    p=malloc(n*sizeof(*p));
@@ -98,7 +104,8 @@ static void alloc_data(void)
    for (l=0;l<nrw;l++)
    {
       data.dbl[l]=p;
-      p+=(nm[l]*nsrc[l]*ndbl[l]);
+      eod=(nm[l]+1)*2*eodet[l];
+      p+=(nm[l]*nsrc[l]*ndbl[l])+eod;
    }
 }
 
@@ -107,12 +114,14 @@ static void write_file_head(void)
 {
    int nrw,*nsrc,*nm,*ndbl;
    int iw,l;
-   stdint_t istd[3];
+   int *eodet;
+   stdint_t istd[4];
 
    nrw=file_head.nrw;
    nsrc=file_head.nsrc;
    nm=file_head.nm;
    ndbl=file_head.ndbl;
+   eodet=file_head.eodet;
    
    istd[0]=(stdint_t)(nrw);
    
@@ -126,28 +135,30 @@ static void write_file_head(void)
       istd[0]=(stdint_t)(nsrc[l]);
       istd[1]=(stdint_t)(nm[l]);
       istd[2]=(stdint_t)(ndbl[l]);
+      istd[3]=(stdint_t)(eodet[l]);
    
       if (endian==BIG_ENDIAN)
-         bswap_int(3,istd);
+         bswap_int(4,istd);
 
-      iw+=fwrite(istd,sizeof(stdint_t),3,fdat);
+      iw+=fwrite(istd,sizeof(stdint_t),4,fdat);
    }
 
-   error_root(iw!=(1+3*nrw),1,"write_file_head [ms5.c]",
+   error_root(iw!=(1+4*nrw),1,"write_file_head [ms5.c]",
               "Incorrect write count");
 }
 
 
 static void check_file_head(void)
 {
-   int nrw,*nsrc,*nm,*ndbl;
+   int nrw,*nsrc,*nm,*ndbl,*eodet;
    int ir,ie,l;
-   stdint_t istd[3];
+   stdint_t istd[4];
 
    nrw=file_head.nrw;
    nsrc=file_head.nsrc;
    nm=file_head.nm;
    ndbl=file_head.ndbl;
+   eodet=file_head.eodet;
 
    ir=fread(istd,sizeof(stdint_t),1,fdat);
 
@@ -158,17 +169,18 @@ static void check_file_head(void)
 
    for (l=0;l<nrw;l++)
    {
-      ir+=fread(istd,sizeof(stdint_t),3,fdat);
+      ir+=fread(istd,sizeof(stdint_t),4,fdat);
 
       if (endian==BIG_ENDIAN)
-         bswap_int(3,istd);
+         bswap_int(4,istd);
 
       ie|=(istd[0]!=(stdint_t)(nsrc[l]));
       ie|=(istd[1]!=(stdint_t)(nm[l]));
       ie|=(istd[2]!=(stdint_t)(ndbl[l]));
+      ie|=(istd[3]!=(stdint_t)(eodet[l]));
    }
    
-   error_root(ir!=(1+3*nrw),1,"check_file_head [ms5.c]",
+   error_root(ir!=(1+4*nrw),1,"check_file_head [ms5.c]",
               "Incorrect read count");
    
    error_root(ie!=0,1,"check_file_head [ms5.c]",
@@ -214,6 +226,7 @@ static void write_data(void)
 {
    int iw,n,i,idbl;
    int nrw,*nsrc,*nm,*ndbl,ndblm,irw,isrc,im;
+   int eod,*eodet;
    stdint_t istd[1];
    double *dstd;   
 
@@ -228,13 +241,19 @@ static void write_data(void)
    nsrc=file_head.nsrc;
    nm=file_head.nm;
    ndbl=file_head.ndbl;
+   eodet=file_head.eodet;
    n=0;
 
    ndblm=ndbl[0];
+   if (2*(nm[0]+1)>ndblm)
+      ndblm=2*(nm[0]+1);
    for (irw=1;irw<nrw;irw++)
    {
       if (ndbl[irw]>ndblm)
          ndblm=ndbl[irw];
+      
+      if (2*(nm[irw]+1)>ndblm)
+         ndblm=2*(nm[irw]+1);
    }
    
    dstd=malloc(ndblm*sizeof(*dstd));
@@ -243,6 +262,7 @@ static void write_data(void)
    
    for (irw=0;irw<nrw;irw++)
    {
+      eod=eodet[irw];
       for (im=0;im<nm[irw];im++)
       {
          for (isrc=0;isrc<nsrc[irw];isrc++)
@@ -258,7 +278,19 @@ static void write_data(void)
          }
       }
       
-      n+=(nm[irw]*nsrc[irw]*ndbl[irw]);
+      if (eod==1)
+      {
+	 for (im=0;im<2*(nm[irw]+1);im++)
+	    dstd[im]=data.dbl[irw][nm[irw]*nsrc[irw]*ndbl[irw]+im];
+
+	 if (endian==BIG_ENDIAN)
+	    bswap_double(2*(nm[irw]+1),dstd);
+
+	    iw+=fwrite(dstd,sizeof(double),2*(nm[irw]+1),fdat);
+      }
+      
+      
+      n+=(nm[irw]*nsrc[irw]*ndbl[irw])+2*eod*(nm[irw]+1);
    }
    
    free(dstd);
@@ -272,6 +304,7 @@ static int read_data(void)
 {
    int ir,n,i,idbl;
    int nrw,*nsrc,*nm,*ndbl,ndblm,irw,isrc,im;
+   int eod,*eodet;
    stdint_t istd[1];
    double *dstd;
    
@@ -289,13 +322,20 @@ static int read_data(void)
    nsrc=file_head.nsrc;
    nm=file_head.nm;
    ndbl=file_head.ndbl;
+   eodet=file_head.eodet;
    n=0;
 
    ndblm=ndbl[0];
+   if (2*(nm[0]+1)>ndblm)
+      ndblm=2*(nm[0]+1);
+   
    for (irw=1;irw<nrw;irw++)
    {
       if (ndbl[irw]>ndblm)
          ndblm=ndbl[irw];
+      
+      if (2*(nm[irw]+1)>ndblm)
+         ndblm=2*(nm[irw]+1);
    }
    
    dstd=malloc(ndblm*sizeof(*dstd));
@@ -304,6 +344,7 @@ static int read_data(void)
 
    for (irw=0;irw<nrw;irw++)
    {
+      eod=eodet[irw];
       for (im=0;im<nm[irw];im++)
       {
          for (isrc=0;isrc<nsrc[irw];isrc++)
@@ -319,7 +360,19 @@ static int read_data(void)
          }
       }
       
-      n+=(nm[irw]*nsrc[irw]*ndbl[irw]);
+      if (eod==1)
+      {
+	 ir+=fread(dstd,sizeof(double),2*(nm[irw]+1),fdat);
+	 
+	 if (endian==BIG_ENDIAN)
+	    bswap_double(2*(nm[irw]+1),dstd);
+	 
+	 for (im=0;im<2*(nm[irw]+1);im++)
+	    data.dbl[irw][nm[irw]*nsrc[irw]*ndbl[irw]+im]=dstd[im];
+
+      }
+      
+      n+=(nm[irw]*nsrc[irw]*ndbl[irw])+eod*(nm[irw]+1);
    }
 
    free(dstd);
@@ -386,13 +439,14 @@ static void read_dirs(void)
    MPI_Bcast(&level,1,MPI_INT,0,MPI_COMM_WORLD);
    MPI_Bcast(&seed,1,MPI_INT,0,MPI_COMM_WORLD);
 
-   nsrc=malloc(3*nrw*sizeof(*nsrc));
+   nsrc=malloc(4*nrw*sizeof(*nsrc));
    error(nsrc==NULL,1,"read_dirs [ms5.c]",
          "Unable to allocate data array");
    file_head.nrw=nrw;
    file_head.nsrc=nsrc;   
    file_head.nm=nsrc+nrw;   
    file_head.ndbl=file_head.nm+nrw;   
+   file_head.eodet=file_head.ndbl+nrw;
 }
 
 
@@ -520,14 +574,15 @@ static void read_bc_parms(void)
 
 static void read_mrw_factors(void)
 {
-   int nrw,*nsrc,*nm,*ndbl,irw;
+   int nrw,*nsrc,*nm,*ndbl,irw,*eodet;
    mrw_parms_t rwp;
 
    nrw=file_head.nrw;
    nsrc=file_head.nsrc;
    nm=file_head.nm;
    ndbl=file_head.ndbl;
-
+   eodet=file_head.eodet;
+   
    for (irw=0;irw<nrw;irw++)
    {
       read_mrw_parms(irw);
@@ -541,6 +596,12 @@ static void read_mrw_factors(void)
          ndbl[irw]=9;
       else
          ndbl[irw]=4;
+      
+      if  ((rwp.mrwfact==MRW_EO)||(rwp.mrwfact==TMRW_EO))
+	 eodet[irw]=1;
+      else
+	 eodet[irw]=0;
+	 
    }
 
    if (append)
@@ -719,7 +780,7 @@ static void read_infile(int argc,char *argv[])
 
    read_lat_parms();
    read_bc_parms();
-	read_mrw_factors();
+   read_mrw_factors();
    read_solvers();
 
    if (my_rank==0)
@@ -943,10 +1004,10 @@ static void print_info(void)
          printf("%dx%dx%dx%d process block size\n",
                 NPROC0_BLK,NPROC1_BLK,NPROC2_BLK,NPROC3_BLK);
 
-         if (append)
+         /*if (append)
             printf("\n");
          else
-            printf("SF boundary conditions on the quark fields\n\n");
+            printf("SF boundary conditions on the quark fields\n\n");*/
       }
 
       if (append)
@@ -1097,10 +1158,10 @@ static void print_status(int irw,int ninv,int *status)
 
 static void set_data(int nc)
 {
-   int nrw,nsrc,irw,isrc,itm,ninv,idbl,nm,ndbl,ieo;
+   int nrw,nsrc,irw,isrc,itm,ninv,idbl,nm,ndbl,ieo,eodet;
    int l,j,i,status[9],stat[9];
    double sqne,*lnr,sqnp[2];
-   complex_dble z,lnw1[2];
+   complex_dble z,lnw1[2],cswdet;
    mrw_parms_t rwp;
    mrw_masses_t ms;
    tm_parms_t tmp;
@@ -1116,6 +1177,7 @@ static void set_data(int nc)
       nsrc=rwp.nsrc;
       nm=rwp.nm;
       ndbl=file_head.ndbl[irw];
+      eodet=file_head.eodet[irw];
       
       if (rwp.mrwfact<MRW)
       {
@@ -1125,15 +1187,25 @@ static void set_data(int nc)
       else
       {
          itm=0;
-         ieo=0;
-         tmp=tm_parms();
-         if (tmp.eoflg!=rwp.tmeo)
-            set_tm_parms(rwp.tmeo,0.0);
+	 if (rwp.mrwfact==MRW_EO)
+	 {
+	    ieo=1;
+	    tmp=tm_parms();
+	    if (tmp.eoflg!=rwp.tmeo)
+	       set_tm_parms(rwp.tmeo,rwp.mu_odd0);
+	 }
+	 else
+	 {
+	    ieo=0;
+	    tmp=tm_parms();
+	    if (tmp.eoflg!=rwp.tmeo)
+	       set_tm_parms(rwp.tmeo,0.0);
+	 }
       }
 
       ninv=1;
       if ((rwp.mrwfact==TMRW)||(rwp.mrwfact==TMRW1)||(rwp.mrwfact==MRW)||
-          (rwp.mrwfact==TMRW_EO)||(rwp.mrwfact==TMRW1_EO))
+          (rwp.mrwfact==MRW_EO)||(rwp.mrwfact==TMRW_EO)||(rwp.mrwfact==TMRW1_EO))
          ninv=1;
       else if ((rwp.mrwfact==TMRW3)||(rwp.mrwfact==TMRW3_EO)||
                (rwp.mrwfact==MRW_ISO)||(rwp.mrwfact==MRW_TF))
@@ -1217,6 +1289,14 @@ static void set_data(int nc)
                status[3*i+2]+=(stat[3*i+2]!=0);
             }
          }
+         
+         if (eodet==1)
+	 {
+	    get_cswdet(ms,&cswdet);
+	    lnr[nsrc*ndbl*nm+2*(j+1)]=cswdet.re;
+	    lnr[nsrc*ndbl*nm+2*(j+1)+1]=cswdet.im;
+	 }
+         
       }
 
       print_status(irw,ninv,status);
