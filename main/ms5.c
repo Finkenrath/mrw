@@ -372,7 +372,7 @@ static int read_data(void)
 
       }
       
-      n+=(nm[irw]*nsrc[irw]*ndbl[irw])+eod*(nm[irw]+1);
+      n+=(nm[irw]*nsrc[irw]*ndbl[irw])+2*eod*(nm[irw]+1);
    }
 
    free(dstd);
@@ -1221,12 +1221,13 @@ static void set_data(int nc)
          status[l]=0;
          stat[l]=0;
       }
-               
+            
       /*printf("itm: %d, ione: %d\n",itm,ione);*/
       for (j=0;j<nm;j++)
       {
          ms=get_mrw_masses(irw,j);
-         /*printf("m1: %.6f, mu1: %.6f, d1: %.6f\n",ms.m1,ms.mu1,ms.d1);
+         /* printf("m1: %.6f, mu1: %.6f, d1: %.6f\n",ms.m1,ms.mu1,ms.d1);
+	 printf("rwp.m %.8f  rwp.m0 %.8f \n",rwp.m,rwp.m0);
          printf("m2: %.6f, mu2: %.6f, d2: %.6f\n",ms.m2,ms.mu2,ms.d2);*/
          for (isrc=0;isrc<nsrc;isrc++)
          {
@@ -1292,13 +1293,20 @@ static void set_data(int nc)
          
          if (eodet==1)
 	 {
-	    get_cswdet(ms,&cswdet);
-	    lnr[nsrc*ndbl*nm+2*(j+1)]=cswdet.re;
-	    lnr[nsrc*ndbl*nm+2*(j+1)+1]=cswdet.im;
+	    cswdet=get_cswdet(ms);
+	    lnr[nsrc*ndbl*nm+2*j]=cswdet.re;
+	    lnr[nsrc*ndbl*nm+2*j+1]=cswdet.im;
 	 }
-         
       }
 
+      if (eodet==1)
+      {
+	  ms.m1=rwp.m0;
+	  cswdet=get_cswdet(ms);
+	  lnr[nsrc*ndbl*nm+2*nm]=cswdet.re;
+	  lnr[nsrc*ndbl*nm+2*nm+1]=cswdet.im;
+      }   
+      
       print_status(irw,ninv,status);
       print_rw(irw);
    }

@@ -85,7 +85,16 @@
 #include "mrw.h"
 #include "global.h"
 #include "dirac.h"
+#include "sw_term.h"
 
+#define N0 (NPROC0*L0)
+#define MAX_LEVELS 8
+#define BLK_LENGTH 8
+
+static int cntr[MAX_LEVELS];
+static double smxr[MAX_LEVELS];
+static int cnti[MAX_LEVELS];
+static double smxi[MAX_LEVELS];
 
 static double set_eta(spinor_dble *eta)
 {
@@ -415,9 +424,127 @@ double mrw3eo(mrw_masses_t ms,int *isp,complex_dble *lnw1,
 }
 
 
-
-void get_cswdet(mrw_masses_t ms,complex_dble *cswdet)
+static complex_dble sdet(void)
 {
- (*cswdet).re=0.0;  
- (*cswdet).im=0.0;
+   int bc,ix,iy,t,n,ie;
+   double c,pr,pi,mu;
+   complex_dble z,lz;
+   pauli_dble *m;
+   sw_parms_t swp;
+   tm_parms_t tm;
+   
+   tm=tm_parms();
+   swp=sw_parms();
+   mu=tm.mu_sdet;
+   
+   if ((4.0+swp.m0)>1.0)
+      c=pow(4.0+swp.m0,-6.0);
+   else
+      c=1.0;
+
+   for (n=0;n<MAX_LEVELS;n++)
+   {
+      cntr[n]=0;
+      smxr[n]=0.0;
+      
+      cnti[n]=0;
+      smxi[n]=0.0;
+   }
+
+   sw_term(NO_PTS);
+   m=swdfld()+VOLUME;
+   bc=bc_type();
+   ix=(VOLUME/2);
+   ie=0;
+
+   while (ix<VOLUME)
+   {
+      pr=1.0;
+      pi=1.0;
+      iy=ix+BLK_LENGTH;
+      if (iy>VOLUME)
+         iy=VOLUME;
+
+      for (;ix<iy;ix++)
+      {
+         t=global_time(ix);
+
+         if (((t>0)||(bc==3))&&((t<(N0-1))||(bc!=0)))
+         {
+            z=det_pauli_dble(mu,m);
+            pr=(c*z.re)*pr-(c*z.im)*pi;
+	    pi=(c*z.im)*pr+(c*z.re)*pi;
+	    
+	    z=det_pauli_dble(mu,m+1);
+	    pr=(c*z.re)*pr-(c*z.im)*pi;
+	    pi=(c*z.im)*pr+(c*z.re)*pi;
+         }
+
+         m+=2;
+      }
+
+      if (pr!=0.0)
+      {
+         cntr[0]+=1;
+         smxr[0]-=log(pr);
+
+         for (n=1;(cntr[n-1]>=BLK_LENGTH)&&(n<MAX_LEVELS);n++)
+         {
+            cntr[n]+=1;
+            smxr[n]+=smxr[n-1];
+
+            cntr[n-1]=0;
+            smxr[n-1]=0.0;
+         }
+      }
+      else
+         ie=1;
+      
+      if (pi!=0.0)
+      {
+         cnti[0]+=1;
+         smxi[0]-=log(pi);
+
+         for (n=1;(cnti[n-1]>=BLK_LENGTH)&&(n<MAX_LEVELS);n++)
+         {
+            cnti[n]+=1;
+            smxi[n]+=smxi[n-1];
+
+            cnti[n-1]=0;
+            smxi[n-1]=0.0;
+         }
+      }
+      else
+         ie=1;
+      
+   }
+
+   error(ie!=0,1,"sdet [mrweo.c]",
+         "SW term has vanishing determinant");
+
+   for (n=1;n<MAX_LEVELS;n++)
+   {
+      smxr[0]+=smxr[n];
+      smxi[0]+=smxi[n];
+   }
+
+   lz.re=smxr[0];
+   lz.im=smxi[0];
+   
+   return lz;
+}
+
+complex_dble get_cswdet(mrw_masses_t ms)
+{
+   complex_dble adet,ldet;
+   
+   set_tmsdet_parms(ms.mu_odd0);
+   set_sw_parms(ms.m1);
+   
+   ldet=sdet();
+ 
+   MPI_Reduce((double*) &ldet,(double*) &adet,2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+   MPI_Bcast((double*) &adet,2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+   
+   return adet;
 }
