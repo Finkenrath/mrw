@@ -799,7 +799,7 @@ void write_mrw_parms(FILE *fdat)
             istd[3]=(stdint_t)(rw[irw].isp[0]);
             istd[4]=(stdint_t)(rw[irw].isp[1]);
             istd[5]=(stdint_t)(rw[irw].nsrc);
-            istd[7]=(stdint_t)(rw[irw].tmeo);
+            istd[6]=(stdint_t)(rw[irw].tmeo);
             dstd[0]=rw[irw].kappa0;
             dstd[1]=rw[irw].kappa;
             dstd[2]=rw[irw].mu0;
